@@ -1,0 +1,32 @@
+Shelby McGarrah
+sm52376
+
+
+To run: 
+make 
+assemble {$FILE_NAME}
+
+Will read in the contents of the file, and output the resulting location->byte mapping.
+
+(Note, DEBUG in y86-assembler.c must be set to 0 to get proper output)
+
+
+Note to Ben: 
+- The results of the student tests are in the student test results folder
+
+
+
+
+
+The only special case I didn't handle (that I could think of) was in the displacement vs register problem of mr/rm movq:
+
+mrmovq #x1(%rax) %rax
+vs
+mrmovq #x1 %rax
+
+To tell whether #x1 was a register or an offset, we would have to look ahead multiple characters, and so I just assumed the second situation would never occur. 
+
+
+
+
+
