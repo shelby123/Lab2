@@ -804,12 +804,6 @@ uint64_t lookupSymbol(symbol* header, char* label) {
 Utility methods
 ***********************************************************************************/
 
-#define NUMWHITESPACE 6
-#define NOTFOUND -1
-
-char whiteSpace[NUMWHITESPACE] = {' ', '\t', '\n', '\v', '\f', '\r'};
-int lineNumber = 0;
-int printing = 0;
 
 
 
@@ -935,4 +929,17 @@ int isValidDigit(char c) {
     return ('0' <= c && c <= '9') ||
             ('A' <= c && c <= 'F') ||
             ('a' <= c && c <= 'f');
+}
+
+/* 
+ * pre: str is not null
+ * post: str will be a lowercase string
+ */
+void toLowerCase(char* str, int n) {
+    for(int i = 0; i < n; i++) {
+        char c = str[i];
+        if('A' <= c && c <= 'Z') 
+            c = c - ('A' - 'a');
+        str[i] = c;
+    }
 }

@@ -3,7 +3,7 @@
 #define NUMBRANCH 7
 #define NUMMOVE 7
 
-#define HALT 0
+#define HALTINSTR 0
 #define NOP 1
 #define NOOP 2
 #define RRMOVQ 3

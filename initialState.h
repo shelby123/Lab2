@@ -7,7 +7,7 @@
 #define ADDR 0
 #define VAL 1
 
-#define DEBUGINITSTATE 1
+#define DEBUGINITSTATE 0
 
 int lineNumber = 1;
 
@@ -138,7 +138,7 @@ void loadFlags(FILE *file, state *s) {
         removeWhiteSpace(file);
         s->flags[i] = getNumber(file);
         if(DEBUGINITSTATE) {
-            printf("Loaded in %d to flag %d\n", s->flags[i], i);
+            printf("Loaded in %lld to flag %d\n", (long long int) s->flags[i], i);
         }
     }
 }

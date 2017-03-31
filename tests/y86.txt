@@ -1,0 +1,5 @@
+(
+(irmovq 9 %rax)
+(rrmovq %rax %rcx)
+(halt)
+)

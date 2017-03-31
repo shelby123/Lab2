@@ -12,6 +12,9 @@
 #define SFLAG 1
 #define OFLAG 2
 
+#define NORMAL 0
+#define HALT 1
+
 typedef struct st {
 
 	uint64_t status;
@@ -20,7 +23,7 @@ typedef struct st {
 
 	uint64_t registers[NUMREG];
 
-	uint64_t memory[MEMSIZE];
+	char memory[MEMSIZE];
 
 	uint64_t pc;
 

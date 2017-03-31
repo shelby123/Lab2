@@ -12,6 +12,7 @@ int removeWhiteSpaceLines(FILE* file, int lineNumber);
 char peekChar(FILE* file);
 int isWhiteSpace(char c);
 void error(char* errorMessage, int lineNumber);
+void warning(char* errorMessage);
 uint64_t getNumber(FILE* file);
 
 
@@ -33,6 +34,13 @@ Utility methods.
 void error(char* errorMessage, int lineNumber) {
     fprintf(stderr, "ERROR: (Line Number %d) \n\t%s\n", lineNumber, errorMessage);
     exit(-1);
+}
+
+/* 
+ * write an error message but don't kill the assembler.
+ */
+void warning(char* errorMessage) {
+    fprintf(stderr, "WARNING: \n\t%s\n", errorMessage);
 }
 
 /*
