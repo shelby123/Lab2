@@ -20,12 +20,21 @@ int main() {
 }
 
 void runTest(char *assembler, char *expected, char* testName) {
+	if(DEBUGTESTER) 
+		printf("\nAbout to run simulation on assembler file\n");
 	state *resultingState = runSimulation(assembler);
 	state *expectedState = stalloc();
 	FILE *file = fopen(expected, "r");
-	printf("h\n");
+	if(DEBUGTESTER)
+		printf("\nLoad expected values into memory\n");
+
 	loadInMemValues(file, expectedState);
-	printf("h\n");
+	loadRegisters(file, expectedState);
+	loadFlags(file, expectedState);
+	loadStatusAndPC(file, expectedState);
+
+	if(DEBUGTESTER) 
+		printf("%s: checking if equal results\n", testName);
 	if(statesEqual(resultingState, expectedState)) {
 		printf("passed test %s\n", testName);
 	} else {
@@ -77,7 +86,7 @@ int memoriesEqual(state *actual, state *expected) {
 			}
 			return 0;
 		}
-	}
+	} 
 	return 1;
 }
 
@@ -88,23 +97,23 @@ int infoEqual(state *actual, state *expected) {
 				(long long int) actual->status, 
 				(long long int) expected->status);
 		}
-	} else if(actual->zflag != expected->zflag) {
+	} else if(actual->flags[ZFLAG] != expected->flags[ZFLAG]) {
 		if(DEBUGTESTER) {
 			printf("\tactual zflag: %lld, expected zflag: %lld\n",
-				(long long int) actual->zflag, 
-				(long long int) expected->zflag);
+				(long long int) actual->flags[ZFLAG], 
+				(long long int) expected->flags[ZFLAG]);
 		}
-	} else if(actual->sflag != expected->sflag) {
+	} else if(actual->flags[SFLAG] != expected->flags[SFLAG]) {
 		if(DEBUGTESTER) {
 			printf("\tactual sflag: %lld, expected sflag: %lld\n",
-				(long long int) actual->sflag, 
-				(long long int) expected->sflag);
+				(long long int) actual->flags[SFLAG], 
+				(long long int) expected->flags[SFLAG]);
 		}
-	} else if(actual->oflag != expected->oflag) {
+	} else if(actual->flags[OFLAG] != expected->flags[OFLAG]) {
 		if(DEBUGTESTER) {
 			printf("\tactual oflag: %lld, expected oflag: %lld\n",
-				(long long int) actual->oflag, 
-				(long long int) expected->oflag);
+				(long long int) actual->flags[OFLAG], 
+				(long long int) expected->flags[OFLAG]);
 		}
 	} else if(actual->pc != expected->pc) {
 		if(DEBUGTESTER) {

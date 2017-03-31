@@ -19,8 +19,13 @@
 /* drivers */
 state* runSimulation(char* fileName);
 
+void test1() {
 
-/* parsing into memory */
+}
+
+void test2() {
+	
+}
 
 
-/* utility methods */
+void (*pFuncs[2])() = {test1, test2};

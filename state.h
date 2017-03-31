@@ -1,18 +1,26 @@
+#include <stdint.h>
+#include <inttypes.h>
+#include <stdlib.h>
 
 
-
-#define MEMSIZE 1000
+#define MEMSIZE 100
 #define BYTESIZE 1
 #define NUMREG 15
+
+#define NUMFLAGS 3
+#define ZFLAG 0
+#define SFLAG 1
+#define OFLAG 2
 
 typedef struct st {
 
 	uint64_t status;
-	uint64_t zflag, sflag, oflag;
+	
+	uint64_t flags[NUMFLAGS];
 
-	uint64_t *registers;
+	uint64_t registers[NUMREG];
 
-	uint64_t *memory;
+	uint64_t memory[MEMSIZE];
 
 	uint64_t pc;
 
@@ -22,7 +30,5 @@ typedef struct st {
 
 state* stalloc() {
 	state *res = calloc(1, sizeof(state));
-	res->memory = calloc(MEMSIZE, 1);
-	res->registers = calloc(NUMREG, sizeof(uint64_t));
 	return res;
 }

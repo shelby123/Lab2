@@ -4,7 +4,7 @@ MEMORY
 
 )
 
-registers
+(registers)
 0
 0
 0
@@ -21,13 +21,13 @@ registers
 0
 0
 
-flags (z, f, o)
+(flags (z, f, o))
 0
 0
 0
 
-status
+(status)
 0
 
-pc
+(pc)
 0 
