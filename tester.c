@@ -50,18 +50,25 @@ int main() {
 				testNames[testNum]);
 	}
 	runFibTests();
+	runQuickSortTests();
 }
 
 
-#define NUMFIBTESTS 1
+#define NUMFIBTESTS 4
 char* fibTestFiles[NUMFIBTESTS] = 
 	{
-		"tests/fibTests/test1.txt"
+		"tests/fibTests/test1.txt",
+		"tests/fibTests/test2.txt",
+		"tests/fibTests/test3.txt",
+		"tests/fibTests/test4.txt"
 	};
 
 int fibResults[NUMFIBTESTS] = 
 	{
-		2
+		2,
+		3, 
+		5,
+		89
 	};
 
 void runFibTests() {
@@ -76,6 +83,42 @@ void runFibTests() {
 				fibResults[i], result->registers[0]);
 		}
 		free(result);
+	}
+}
+
+
+#define NUMQUICKSORTTESTS 2
+char* quickSortTestFiles[NUMQUICKSORTTESTS] = 
+	{
+		"tests/quickSortTests/qsTest1.txt",
+		"tests/quickSortTests/qsTest2.txt"
+	};
+
+char* quickSortResultFiles[NUMQUICKSORTTESTS] = 
+	{
+		"tests/quickSortTests/qsTest1Res.txt",
+		"tests/quickSortTests/qsTest2Res.txt"
+	};
+
+void runQuickSortTests() {
+	printf("\n\n\n********************************\nRunning Quick Sort tests\n");
+	for(int i = 0; i < NUMQUICKSORTTESTS; i++) {
+		state *result = runSimulation(quickSortTestFiles[i]);
+		state *expectedState = stalloc();
+		FILE *file = fopen(quickSortResultFiles[i], "r");
+		if(DEBUGTESTER)
+			printf("\nLoad expected values into memory\n");
+
+		loadInMemValues(file, expectedState);
+
+		if(memoriesEqual(result, expectedState)) {
+			printf("passed quick sort test %d\n", i);
+		} else {
+			printf("FAILED QUICK SORT TEST %d\n", i);
+		}
+		free(result);
+		free(expectedState);
+		fclose(file);
 	}
 }
 
@@ -126,9 +169,9 @@ int registersEqual(state *actual, state *expected) {
 		if(act[i] != exp[i]) {
 			if(DEBUGTESTER) {
 				printf("\tactual register %s: %" PRIu64 ", expected register val: %" PRIu64 "\n",
-					registers[i],
-					(unsigned long long int) act[i], 
-					(unsigned long long int) exp[i]);
+					registerNames[i],
+					  act[i], 
+					  exp[i]);
 			}
 			return 0;
 		}
@@ -140,10 +183,10 @@ int memoriesEqual(state *actual, state *expected) {
 	for(int i = 0; i < MEMSIZE; i++) {
 		if(actual->memory[i] != expected->memory[i]){ 
 			if(DEBUGTESTER) {
-				printf("\tactual memory location %d: %" PRIu64 ", expected memory location: %" PRIu64 "\n",
+				printf("\tactual memory location %d: %d, expected memory location: %d\n",
 					i,
-					(unsigned long long int) actual->memory[i], 
-					(unsigned long long int) expected->memory[i]);
+					  actual->memory[i], 
+					  expected->memory[i]);
 			}
 			return 0;
 		}
@@ -155,32 +198,32 @@ int infoEqual(state *actual, state *expected) {
 	if(actual->status != expected->status) {
 		if(DEBUGTESTER) {
 			printf("\tactual status: %" PRIu64 ", expected status: %" PRIu64 "\n",
-				(unsigned long long int) actual->status, 
-				(unsigned long long int) expected->status);
+				  actual->status, 
+				  expected->status);
 		}
 	} else if(actual->flags[ZFLAG] != expected->flags[ZFLAG]) {
 		if(DEBUGTESTER) {
 			printf("\tactual zflag: %" PRIu64 ", expected zflag: %" PRIu64 "\n",
-				(unsigned long long int) actual->flags[ZFLAG], 
-				(unsigned long long int) expected->flags[ZFLAG]);
+				  actual->flags[ZFLAG], 
+				  expected->flags[ZFLAG]);
 		}
 	} else if(actual->flags[SFLAG] != expected->flags[SFLAG]) {
 		if(DEBUGTESTER) {
 			printf("\tactual sflag: %" PRIu64 ", expected sflag: %" PRIu64 "\n",
-				(unsigned long long int) actual->flags[SFLAG], 
-				(unsigned long long int) expected->flags[SFLAG]);
+				  actual->flags[SFLAG], 
+				  expected->flags[SFLAG]);
 		}
 	} else if(actual->flags[OFLAG] != expected->flags[OFLAG]) {
 		if(DEBUGTESTER) {
 			printf("\tactual oflag: %" PRIu64 ", expected oflag: %" PRIu64 "\n",
-				(unsigned long long int) actual->flags[OFLAG], 
-				(unsigned long long int) expected->flags[OFLAG]);
+				  actual->flags[OFLAG], 
+				  expected->flags[OFLAG]);
 		}
 	} else if(actual->pc != expected->pc) {
 		if(DEBUGTESTER) {
 			printf("\tactual pc: %" PRIu64 ", expected pc: %" PRIu64 "\n",
-				(unsigned long long int) actual->pc, 
-				(unsigned long long int) expected->pc);
+				  actual->pc, 
+				 expected->pc);
 		}
 	} else {
 		return 1;

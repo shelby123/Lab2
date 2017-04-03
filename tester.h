@@ -12,3 +12,4 @@ int registersEqual(state *actual, state *expected);
 int memoriesEqual(state *actual, state *expected);
 int infoEqual(state *actual, state *expected);
 void runFibTests(void);
+void runQuickSortTests(void);

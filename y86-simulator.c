@@ -127,7 +127,7 @@ uint64_t getQuadWord(state *s) {
 	uint64_t readIn = s->pc;
 	if(DEBUG) {
 		printf("reading a quad word at %" PRIu64 "\n",
-			(unsigned long long int) readIn);
+			  readIn);
 	}
 	// least significant byte is first. 
 	for(int i = 0; i < 8; i++) {
@@ -197,11 +197,11 @@ void halt(state *s) {
 void nop(state *s) {
 	if(DEBUG) 
 		printf("executing a nop isntruction. Old pc was %" PRIu64 "", 
-			(unsigned long long int) s->pc);
+			  s->pc);
 	s->pc++;
 	if(DEBUG) 
 		printf(" New pc is %" PRIu64 "\n", 
-			(unsigned long long int) s->pc);
+			  s->pc);
 }
 
 /* 
@@ -271,7 +271,7 @@ void irmovq(state *s) {
 
 	// put the immediate into the register
 	if(DEBUG) 
-		printf("putting immediate %" PRIu64 " into register %d\n", (unsigned long long int) immediate, dest);
+		printf("putting immediate %" PRIu64 " into register %d\n",   immediate, dest);
 
 	s->registers[dest] = immediate;
 }
@@ -304,11 +304,11 @@ void rmmovq(state *s) {
 	if(DEBUG) {
 		printf("rmmovq: \n");
 		printf("\tvalue from reg %d: %" PRIu64 "\n", registers[REGA],
-			(unsigned long long int) value);
+			  value);
 		printf("\tmemory location from reg %d:", registers[REGB]);
 		printf(" %" PRIu64 " (displacement: %" PRIu64 ")\n", 
-			(unsigned long long int) memoryLocation, 
-			(unsigned long long int) displacement);
+			  memoryLocation, 
+			  displacement);
 	}
 
 	for(int i = 0; i < 8; i++) {
@@ -354,11 +354,11 @@ void mrmovq(state *s) {
 	if(DEBUG) {
 		printf("mrmovq: \n");
 		printf("\tvalue to reg %d: %" PRIu64 "\n", registers[REGA],
-			(unsigned long long int) value);
+			  value);
 		printf("\tmemory location from reg %d:", registers[REGB]);
 		printf(" %" PRIu64 " (displacement: %" PRIu64 ")\n", 
-			(unsigned long long int) memoryLocation, 
-			(unsigned long long int) displacement);
+			  memoryLocation, 
+			  displacement);
 	}
 
 
@@ -376,8 +376,8 @@ uint64_t addq(state *s, uint64_t val1, uint64_t val2) {
 	uint64_t res = val1 + val2;
 	if(DEBUG) {
 		printf("Adding : %" PRIu64 " to : %" PRIu64 ", res: %" PRIu64 "\n",
-			(unsigned long long int) val1,(unsigned long long int) val2, 
-			(unsigned long long int) res);
+			  val1,  val2, 
+			  res);
 	}
 	return res;
 }
@@ -392,8 +392,8 @@ uint64_t subq(state *s, uint64_t val1, uint64_t val2){
 	uint64_t res = val2 - val1;
 	if(DEBUG) {
 		printf("subtracting: %" PRIu64 " from : %" PRIu64 ", res: %" PRIu64 "\n",
-			(unsigned long long int) val1, (unsigned long long int) val2, 
-			(unsigned long long int) res);
+			  val1,   val2, 
+			  res);
 	}
 	return res;
 }
@@ -408,8 +408,8 @@ uint64_t andq(state *s, uint64_t val1, uint64_t val2){
 	uint64_t res = val2 & val1;
 	if(DEBUG) {
 		printf("and-ing : %" PRIu64 " with : %" PRIu64 ", res: %" PRIu64 "\n",
-			(unsigned long long int) val1, (unsigned long long int) val2, 
-			(unsigned long long int) res);
+			  val1,   val2, 
+			  res);
 	}
 	return res;
 }
@@ -423,8 +423,8 @@ uint64_t xorq(state *s, uint64_t val1, uint64_t val2) {
 	uint64_t res = val2 ^ val1;
 	if(DEBUG) {
 		printf("xor-ing : %" PRIu64 " with : %" PRIu64 ", res: %" PRIu64 "\n",
-			(unsigned long long int) val1, (unsigned long long int) val2, 
-			(unsigned long long int) res);
+			  val1,   val2, 
+			  res);
 	}
 	return res;
 }
@@ -654,6 +654,11 @@ void ret(state *s) {
 	}
 }
 
+int pushCount = 0;
+int pushCounts[NUMREG] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int popCount = 0;
+int popCounts[NUMREG] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
 /* 
  *	pre: s != null
  *	post: push a value from regA onto 
@@ -676,12 +681,19 @@ void pushq(state *s) {
 	s->registers[RSP] -= 8;
 
 	// push the item onto the stack 
-	uint64_t value = s->registers[REGA];
+	uint64_t value = s->registers[registers[REGA]];
 	uint64_t mask = 0xFF;
 	uint64_t memoryLocation = s->registers[RSP];
 
 	if(DEBUG) {
-		printf("pushing the value %"PRIu64" onto the stack\n", value);
+		pushCount++;
+		pushCounts[registers[REGA]]++;
+		printf("pushing the value %"PRIu64" from register %s onto the stack\n", value, registerNames[registers[REGA]]);
+		printf("num times push has been called: %d\n", pushCount);
+		for(int i = 0 ; i < NUMREG; i++) {
+			printf("%s: %d,", registerNames[i], pushCounts[i]);
+		}
+		printf("\n");
 	}
 
 	for(int i = 0; i < 8; i++) {
@@ -717,7 +729,14 @@ void popq(state *s) {
 	s->pc = savePc;
 
 	if(DEBUG) {
+		popCount++;
+		popCounts[registers[REGA]]++;
 		printf("putting value %"PRIu64" into reg %d\n", value, registers[REGA]);
+		printf("num times pop has been called: %d\n", popCount);
+		for(int i = 0 ; i < NUMREG; i++) {
+			printf("%s: %d,", registerNames[i], popCounts[i]);
+		}
+		printf("\n");
 	}
 
 

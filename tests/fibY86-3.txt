@@ -16,12 +16,14 @@ fib
 (jg checkIfOne)
 (irmovq 0 %rax)
 (jmp done )
+
+; check if n is 1
 checkIfOne
 ; check if r10 is 1
 (irmovq 1 %r11)
 (subq %r11 %r10)
 (jne continue)
-(rrmovq %rdi %rax)
+(irmovq 1 %rax)
 (jmp done)
 
 continue
@@ -29,10 +31,19 @@ continue
 ; fib n-1 + fib n - 2
 (irmovq 1 %r11) 
 (subq %r11 %rdi)
+; save the value of n - 1 onto the stack
+(pushq %rdi)
 (call fib)
+; restore the value of n - 1 into rdi
+(popq %rdi)
+; save the value of the call to fib(n-1) to the stack
 (pushq %rax)
+(irmovq 1 %r11) 
+; rdi -1 (should be n - 2)
 (subq %r11 %rdi)
 (call fib)
+
+; pop the result of fib(n-1) into r10
 (popq %r10)
 (addq %r10 %rax)
 

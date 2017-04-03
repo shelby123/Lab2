@@ -1,0 +1,214 @@
+(
+; wrapper to call the quick sort algo
+(irmovq array %rdi)
+(irmovq 0 %rsi)
+; this immediate must be the length of the array
+(irmovq 1 %rdx)
+(call quicksort)
+(halt)
+
+
+
+
+; array location (start) is in rdi,
+; low is in rsi
+; high is in rdx
+quicksort
+; check if high - low > 0
+(subq %rsi %rdx)
+(jle done)
+; restore the value of rdx
+(addq %rsi %rdx)
+
+; save the values of rdi, rsi and rdx just so 
+; things don't break.
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(call partition)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+
+(pushq %r10)
+(pushq %rax)
+; partition index is in rax
+; need to call quicksort with rdx = rax - 1
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(rrmovq %rax %rdx)
+(irmovq 1 %r10)
+(subq %r10 %rdx)
+; array is still in rdi, low is still in rsi
+(call quicksort)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; restore the partition index to rax 
+(popq %rax) 
+
+(pushq %rax)
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+; need to call quicksort with rsi = rax + 1
+(rrmovq %rax %rsi)
+(irmovq 1 %r10)
+(addq %r10 %rsi);
+
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+(popq %rax) 
+
+
+
+(popq %r10)
+
+done
+(ret)
+
+
+; array location (start) is in rdi,
+; low is in rsi
+; high is in rdx
+partition
+
+; load the pivot element into a register
+(pushq %r12)
+(pushq %r13)
+(pushq %r14)
+(pushq %r8)
+(pushq %r10)
+(pushq %r11)
+(pushq %r9)
+(rrmovq %rdi %r12)
+(addq %rdx %r12)
+; now r12 houses the location of the pivot element
+(mrmovq %r12 %r13)
+; %r13 holds the pivot element
+; set i = low -1 
+; i is in r14
+(rrmovq %rsi %r14)
+(irmovq 1 %r12)
+(subq %r12 %r14)
+
+; let j be in r12.
+(rrmovq %rsi %r12)
+(jmp checkCondition)
+loop
+; get array[j]
+; array is in rdi. j is in r12; 
+(rrmovq %rdi %r10)
+(addq %r12 %r10)
+; array[j] memory location is in r10
+; read in the value to r15
+(mrmovq %r10 %r8)
+; if check: 0 <= pivot - array[j]
+; 0 < r13 - r15
+(rrmovq %r13 %r11)
+(subq %r8 %r11)
+; skip the if statement if pivot - array[j] less than 0
+(jle endIf)
+; incr i in r14
+(rrmovq 1 %r8)
+(addq %r8 %r14)
+; swap array[i] and array[j]
+
+; array[j] MEMORY LOCATION in r10
+; array[j] VALUE in r15
+
+; add i (r14) to array (rdi)
+(addq %r14 %rdi)
+; move array[i] (rdi) into temp (r9)
+(mrmovq %rdi %r9)
+; move array[j] value (r15) into memory location array[i] (rdi)
+(rmmovq %r8 %rdi)
+; move array[i] value (r9) into memory location array[j] (r10)
+(rmmovq %r9 %r10)
+; restore rdi (array (rdi) - i (r14))
+(subq %r14 %rdi)
+
+endIf
+; increment the index variable j
+; j is in r12
+(irmovq 1 %r9)
+(addq %r9 %r12)
+
+checkCondition
+; high is in rdx
+; j is in r12
+; continue the loop if j < high 
+; or if 0 < high - 1
+(rrmovq %rdx %r10)
+(subq %r12 %r10)
+(jg loop)
+
+endLoop
+; need to swap array[i+1] with array[high]
+; array is in rdi
+; i is in r14. array is in rdi. high is in rdx
+(irmovq 1 %r9)
+(addq %r9 %r14)
+; we can use r12, r10, r15 r9
+; put array[i+1] MEM LOCATION in r9
+; put array[high] MEM LOCATION in r12
+; put array[i+1] VAL in r10
+; put array[high] VAL in r15
+(rrmovq %rdi %r9)
+(addq %r14 %r9)
+(rrmovq %rdi %r12)
+(addq %rdx %r12)
+(mrmovq %r9 %r10)
+(mrmovq %r12 %r8)
+; set array[high] (r12) to r10
+; set array[i+1] (r9) to r15
+(rmmovq %r10 %r12)
+(rmmovq %r8 %r9)
+
+; put i+1 in rax 
+(rrmovq %r14 %rax)
+
+(popq %r9)
+(popq %r11)
+(popq %r10)
+(popq %r8)
+(popq %r14)
+(popq %r13)
+(popq %r12)
+(ret)
+
+; need a method to offset into an array. I.e. array[j] = array + j*8 not array + j
+getOffset
+; array in rdi. index in rsi
+(pushq %r10) ; loop control in r10
+(pushq %r11) ; accumulator in r11
+(pushq %r12) ; 1
+(pushq %r13) ; 8
+(irmovq 1 %r12)
+(irmovq 8 %r13)
+(rrmovq %rsi %r10)
+(rrmovq %rdi %r11)
+(jmp checkIfZero)
+loop
+(subq %r12 %r10)
+(addq %r13 %r11)
+
+checkIfZero
+(andq %r10 %r10)
+(jg loop)
+
+; done
+(rrmovq %r11 %rax)
+(popq %r13)
+(popq %r12)
+(popq %r11)
+(popq %r10)
+(ret)
+
+
+(pos 4096)
+array
+(qword 1)
+)

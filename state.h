@@ -5,7 +5,7 @@
 #include "instructions.h"
 
 
-#define MEMSIZE 1000
+#define MEMSIZE 5000
 #define BYTESIZE 1
 #define NUMREG 15
 
@@ -45,7 +45,7 @@ state* stalloc() {
 
 void printRegisters(state *s) {
 	for(int i = 0; i < NUMREG; i++)  {
-		printf("%s : %"PRIu64"\n", registers[i], s->registers[i]);
+		printf("%s : %"PRIu64"\n", registerNames[i], s->registers[i]);
 	}
 }
 

@@ -1,0 +1,339 @@
+(
+; wrapper to call the quick sort algo
+(irmovq array %rdi)
+(irmovq 0 %rsi)
+; this immediate must be the length of the array
+(irmovq 1 %rdx)
+(call quicksort)
+(halt)
+
+
+
+
+
+; ************ QUICKSORT *****************
+; array is in rdi
+; low index is in rsi
+; high index is in rdx
+; return the result in rax
+quicksort
+
+; check if low (in rsi) < high (in rdx)
+; we will put high into r10, minus low from it, 
+; and see if the result is greater than zero.
+; go to done if low >= high or high-low <= 0
+(pushq %r10)
+(rrmovq %rdx %r10)
+(subq %rsi %r10)
+(popq %r10) ; popping won't change the CC
+(jle done)
+
+; call partition.
+; array, low, high are in the right places. 
+; but let's save them on the stack just in case. 
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(call partition)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+
+; result of partition-- partition index-- is in rax. 
+; let's move it to r10 and save it. 
+(rrmovq %rax %r10)
+
+; call quicksort the first time. 
+; ( array (in rdi), low (in rsi), pi (in r10) - 1 )
+; so we just need to decrement pi (r10), and move
+; it into rdx
+; save all the values into the stack
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r10)
+(pushq %r11)
+(irmovq 1 %r11)
+(subq %r11 %r10) ; decrement pi by 1
+(rrmovq %r10 %rdx) ; move pi into the 3rd argument
+(call quicksort)
+(popq %r11)
+(popq %r10)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+
+; call quicksort the second time. 
+; ( array (in rdi), pi (in r10) + 1 , high (in rdx))
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r10)
+(pushq %r11)
+(irmovq 1 %r11)
+(addq %r11 %r10) ; increment pi by 1
+(rrmovq %r10 %rsi) ; move pi into the 2nd argument
+(call quicksort)
+(popq %r11)
+(popq %r10)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+
+done
+(ret)
+
+
+
+
+
+; ************ PARTITION *****************
+; array is in rdi
+; low index is in rsi
+; high index is in rdx
+; return the result in rax
+partition
+
+; store the pivot into r8. 
+(pushq %r8)
+; need to get array[high] (rdi + rdx*8)
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(call getOffset)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; the memory location (rdi + rdx*8) is in rax. 
+(mrmovq %rax %r8)
+
+; store i (low - 1) in r9
+(pushq %r9)
+(pushq %r10) ; temporarily use r10 as incr var
+(irmovq 1 %r10)
+(rrmovq %rsi %r9)
+(subq %r10 %r9)
+(popq %r10) ; restore the old value of r10
+
+; LOOP
+; store j in r10
+(pushq %r10)
+(rrmovq %rsi %r10)
+(jmp checkCondition)
+
+; loop body
+loop
+
+; check if array[j] <= pivot
+; store array[j] in r11
+; array + j * 8  or rdi + r10 * 8. 
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r10)
+(rrmovq %r10 %rsi)
+(call getOffset)
+(popq %r10)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; memory location array + j * 8 is in rax. 
+; store array[j] value in r11
+(pushq %r11)
+(mrmovq %rax %r11)
+
+; now we have array[j] in r11, and pivot in r8.
+; we need to check if r11 <= r8. 
+; put r8 in r12, and do r12 - r11, check if 
+; 0 <= r12 - r11 (jump to the end of the if 
+; statement if 0 > r12 - r11)
+(pushq %r12)
+(rrmovq %r8 %r12)
+(subq %r11 %r12)
+(popq %r12)
+(jl endIf)
+
+; now we're inside of the if statement. 
+; rax is holding memory location array[j]
+
+; need to increment i. i is in r9
+(pushq %r12)
+(irmovq 1 %r12)
+(addq %r12 %r9)
+(popq %r12)
+
+; call swap with array[i] and array[j]
+; array[i] needs to go into rdi
+; array[j] needs to go into rsi
+
+; temporarily store rax (array[j]) on the stack. 
+(pushq %rax)
+
+; get array[i]. i is in r9. array is in rdi
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r9)
+(rrmovq %r9 %rsi)
+(call getOffset)
+(popq %r9)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; array[i] is in rax. We need it to be in rdi. 
+
+; array[j] is on the stack. We need this to be 
+; popped into rsi. 
+; array[i] is in rax. we need this to be in rdi
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(rrmovq %rax %rdi)
+(popq %rsi)
+(call swap)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi) 
+
+endIf
+
+(popq %r11) ; restore the old value of r11 
+
+; check if j < high 
+; j is in r10. high is in rdx
+; check if 0 < high - j.
+; put high in r11, subtract j 
+; and jump back into the loop if greater than zero 
+checkCondition
+(pushq %r11) 
+(rrmovq %rdx %r11)
+(subq %r10 %r11)
+(popq %r11) ; popping shouldn't change the CC
+(jg loop)
+
+; at the end of the loop. 
+; need i + 1
+; i is in r9. 
+(pushq %r12)
+(irmovq 1 %r12)
+(addq %r12 %r9)
+(popq %r12)
+
+; i + 1 is in r9
+; need array[i+1] in rdi
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r9)
+(rrmovq %r9 %rsi)
+(call getOffset)
+(popq %r9)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; array + (i+1)*8 is in rax
+
+; temporarily store array[i+1] on the stack 
+(pushq %rax)
+
+; need array[high] in rsi
+; high is in rdx
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(rrmovq %rdx %rsi)
+(call getOffset)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; now array[high] is in rax. 
+
+; array[i+1] is on the stack. We need this to be 
+; popped into rsi. 
+; array[high] is in rax. we need this to be in rdi
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(rrmovq %rax %rdi)
+(popq %rsi)
+(call swap)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi) 
+
+; now we just need to return i + 1 in rax
+; i + 1 is in r9
+(rrmovq %r9 %rax)
+
+(popq %r10)
+(popq %r9)
+(popq %r8)
+(ret)
+
+
+
+
+; ****************** GET OFFSET ****************************
+getOffset
+; array in rdi. index in rsi
+(pushq %r10) ; loop control in r10
+(pushq %r11) ; accumulator in r11
+(pushq %r12) ; 1
+(pushq %r13) ; 8
+(irmovq 1 %r12)
+(irmovq 8 %r13)
+(rrmovq %rsi %r10)
+(rrmovq %rdi %r11)
+(jmp checkIfZero)
+loop
+(subq %r12 %r10)
+(addq %r13 %r11)
+
+checkIfZero
+(andq %r10 %r10)
+(jg loop)
+
+; done
+(rrmovq %r11 %rax)
+(popq %r13)
+(popq %r12)
+(popq %r11)
+(popq %r10)
+(ret)
+
+
+
+; ********************* SWAP *******************************
+; array[i] is in rdi
+; array[j] is in rsi
+swap
+
+; store the value array[i] in r10
+(pushq %r10)
+(mrmovq %rdi %r10)
+
+; store the value array[j] in r11
+(pushq %r11)
+(mrmovq %rsi %r11)
+
+; set array[i] to r11
+(rmmovq %r11 %rdi)
+
+; set array[j] to r10
+(rmmovq %r10 %rsi)
+
+(popq %r11)
+(popq %r10)
+
+(ret)
+
+
+
+
+; ****************** ARRAY *******************
+(pos 4096)
+array
+(qword 1 2)
+
+
+)
