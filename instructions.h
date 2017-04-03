@@ -22,3 +22,6 @@
 
 
 int instrBytes[NUMINSTR] = {1, 1, 1, 2, 10, 10, 10, 2, 9, 2, 9, 1, 2, 2, 10, 1};
+
+char* registers[15] = { "rax", "rcx", "rdx", "rbx", "rsp", "rbp", 
+		"rsi", "rdi", "r08", "r09", "r10", "r11", "r12", "r13", "r14"};

@@ -328,14 +328,16 @@ uint64_t getNumber(FILE* file) {
     if(DEBUG)
         printf("string num is %s, next char is %c\n", value, peekChar(file));
     if(isHex) {
-        int64_t acc = 0;
-        int sixteenFact = 1;
+        uint64_t acc = 0;
+        uint64_t sixteenFact = 1;
         for(int i = index-1; i >= 0; i--) {
             int hexValue = getHexDigit(value[i]);
             acc += (sixteenFact * hexValue);
             sixteenFact *= 16;
         }
         free(value);
+        if(DEBUG) 
+            printf("returining hex value %lld\n", (long long int) acc);
         return acc;
     } else {
         uint64_t res = atoi(value);
@@ -564,7 +566,10 @@ void processImmediate(op* instruction, FILE* file) {
     removeWhiteSpace(file);
     int c = peekChar(file);
     if(isValidInt(c) || c == '#') {
-        instruction->data.immediate = getNumber(file);
+        uint64_t temp = getNumber(file);
+        if(DEBUG) 
+            printf("temp is %" PRIu64 " \n", temp);
+        instruction->data.immediate = temp;
         instruction->label = NULL;
     } else {
         int index = 0;
@@ -942,4 +947,35 @@ void toLowerCase(char* str, int n) {
             c = c - ('A' - 'a');
         str[i] = c;
     }
+}
+
+
+/*
+ *  pre: ins != null
+ *  post: print out information about the instruction 
+ *  (Just a debug method.)
+ *
+ */ 
+void printOp(op* ins) {
+    printf("instruction: %s", instr[ins->instr]);
+    if(ins->instr == OP || ins->instr == JUMP || ins->instr == CMOVE) {
+        printf("\ttype: %d", ins->instrNum);
+    }
+    printf("\tregA: %d", ins->rA);
+    printf("\tregB: %d", ins->rB);
+    printf("\toffset: %lld",(long long int) ins->data.offset);
+    if(ins->label != NULL) 
+        printf("\tlabel: %s", ins->label);
+    printf("\n");
+
+}
+
+/*
+ *  pre: sym != null
+ *  post: print out information about the symbol
+ *  (just a debug method)
+ *
+ */
+void printSymbol(symbol* sym) {
+    printf("Symbol %s\tpos: %lld\n", sym->name, (long long int)sym->loc);
 }

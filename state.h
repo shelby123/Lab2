@@ -1,9 +1,11 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include "instructions.h"
 
 
-#define MEMSIZE 100
+#define MEMSIZE 1000
 #define BYTESIZE 1
 #define NUMREG 15
 
@@ -14,6 +16,10 @@
 
 #define NORMAL 0
 #define HALT 1
+
+#define RSP 4
+#define INITIALSTACKPOS (MEMSIZE)
+
 
 typedef struct st {
 
@@ -33,5 +39,29 @@ typedef struct st {
 
 state* stalloc() {
 	state *res = calloc(1, sizeof(state));
+	res->registers[RSP] = INITIALSTACKPOS;
 	return res;
 }
+
+void printRegisters(state *s) {
+	for(int i = 0; i < NUMREG; i++)  {
+		printf("%s : %"PRIu64"\n", registers[i], s->registers[i]);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

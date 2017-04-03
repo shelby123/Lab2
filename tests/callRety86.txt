@@ -1,0 +1,10 @@
+(
+(call goTo)
+(irmovq 1 %rcx)
+(jmp end)
+goTo
+(irmovq 2 %rax)
+(ret)
+end
+(halt)
+)

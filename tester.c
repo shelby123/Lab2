@@ -2,12 +2,44 @@
 
 #include "tester.h"
 
-#define NUMTESTS 1
+#define NUMTESTS 11
 #define DEBUGTESTER 1
 
-char* assemblerFiles[NUMTESTS] = {"tests/test1.txt"};
-char* expectedFiles[NUMTESTS] = {"tests/test1Res.txt"};
-char* testNames[NUMTESTS] = {"Test 1"};
+char* assemblerFiles[NUMTESTS] = {"tests/test1.txt", 
+							"tests/test2.txt",
+							"tests/test3.txt",
+							"tests/test4.txt",
+							"tests/test5.txt",
+							"tests/test6.txt",
+							"tests/test7.txt",
+							"tests/test8.txt",
+							"tests/fibTest.txt",
+							"tests/fibTest-2.txt",
+							"tests/fibTest-3.txt"};
+
+char* expectedFiles[NUMTESTS] = {"tests/test1Res.txt",
+							"tests/test2Res.txt",
+							"tests/test3Res.txt",
+							"tests/test4Res.txt",
+							"tests/test5Res.txt",
+							"tests/test6Res.txt",
+							"tests/test7Res.txt",
+							"tests/test8Res.txt",
+							"tests/fibTestRes.txt",
+							"tests/fibTestRes-2.txt",
+							"tests/fibTestRes-3.txt"};
+							
+char* testNames[NUMTESTS] = {"1: irmovq + addq",
+							"2: irmovq + subq",
+							"3: rmmovq + rrmovq + andq",
+							"4: irmovq + xorq",
+							"5: jmp success cases",
+							"6: cmove success cases",
+							"7: call + ret",
+							"8: push + pop",
+							"9: fib base case 0",
+							"10: fib base case 1",
+							"11: fib with n = 2"};
 
 
 
@@ -17,7 +49,36 @@ int main() {
 				expectedFiles[testNum],
 				testNames[testNum]);
 	}
+	runFibTests();
 }
+
+
+#define NUMFIBTESTS 1
+char* fibTestFiles[NUMFIBTESTS] = 
+	{
+		"tests/fibTests/test1.txt"
+	};
+
+int fibResults[NUMFIBTESTS] = 
+	{
+		2
+	};
+
+void runFibTests() {
+	printf("\n\n\n********************************\nRunning Fib tests\n");
+	for(int i = 0; i < NUMFIBTESTS; i++) {
+		state *result = runSimulation(fibTestFiles[i]);
+		if(result->registers[0] == fibResults[i]) {
+			printf("passed fib test %d\n", i);
+		} else {
+			printf("FAILED FIB TEST %d : \n", i);
+			printf("\tExpected: %d, actual: %"PRIu64"\n", 
+				fibResults[i], result->registers[0]);
+		}
+		free(result);
+	}
+}
+
 
 void runTest(char *assembler, char *expected, char* testName) {
 	if(DEBUGTESTER) 
@@ -64,10 +125,10 @@ int registersEqual(state *actual, state *expected) {
 	for(int i = 0; i < NUMREG; i++) {
 		if(act[i] != exp[i]) {
 			if(DEBUGTESTER) {
-				printf("\tactual register %d: %lld, expected register val: %lld\n",
-					i,
-					(long long int) act[i], 
-					(long long int) exp[i]);
+				printf("\tactual register %s: %" PRIu64 ", expected register val: %" PRIu64 "\n",
+					registers[i],
+					(unsigned long long int) act[i], 
+					(unsigned long long int) exp[i]);
 			}
 			return 0;
 		}
@@ -79,10 +140,10 @@ int memoriesEqual(state *actual, state *expected) {
 	for(int i = 0; i < MEMSIZE; i++) {
 		if(actual->memory[i] != expected->memory[i]){ 
 			if(DEBUGTESTER) {
-				printf("\tactual memory location %d: %lld, expected memory location: %lld\n",
+				printf("\tactual memory location %d: %" PRIu64 ", expected memory location: %" PRIu64 "\n",
 					i,
-					(long long int) actual->memory[i], 
-					(long long int) expected->memory[i]);
+					(unsigned long long int) actual->memory[i], 
+					(unsigned long long int) expected->memory[i]);
 			}
 			return 0;
 		}
@@ -93,33 +154,33 @@ int memoriesEqual(state *actual, state *expected) {
 int infoEqual(state *actual, state *expected) {
 	if(actual->status != expected->status) {
 		if(DEBUGTESTER) {
-			printf("\tactual status: %lld, expected status: %lld\n",
-				(long long int) actual->status, 
-				(long long int) expected->status);
+			printf("\tactual status: %" PRIu64 ", expected status: %" PRIu64 "\n",
+				(unsigned long long int) actual->status, 
+				(unsigned long long int) expected->status);
 		}
 	} else if(actual->flags[ZFLAG] != expected->flags[ZFLAG]) {
 		if(DEBUGTESTER) {
-			printf("\tactual zflag: %lld, expected zflag: %lld\n",
-				(long long int) actual->flags[ZFLAG], 
-				(long long int) expected->flags[ZFLAG]);
+			printf("\tactual zflag: %" PRIu64 ", expected zflag: %" PRIu64 "\n",
+				(unsigned long long int) actual->flags[ZFLAG], 
+				(unsigned long long int) expected->flags[ZFLAG]);
 		}
 	} else if(actual->flags[SFLAG] != expected->flags[SFLAG]) {
 		if(DEBUGTESTER) {
-			printf("\tactual sflag: %lld, expected sflag: %lld\n",
-				(long long int) actual->flags[SFLAG], 
-				(long long int) expected->flags[SFLAG]);
+			printf("\tactual sflag: %" PRIu64 ", expected sflag: %" PRIu64 "\n",
+				(unsigned long long int) actual->flags[SFLAG], 
+				(unsigned long long int) expected->flags[SFLAG]);
 		}
 	} else if(actual->flags[OFLAG] != expected->flags[OFLAG]) {
 		if(DEBUGTESTER) {
-			printf("\tactual oflag: %lld, expected oflag: %lld\n",
-				(long long int) actual->flags[OFLAG], 
-				(long long int) expected->flags[OFLAG]);
+			printf("\tactual oflag: %" PRIu64 ", expected oflag: %" PRIu64 "\n",
+				(unsigned long long int) actual->flags[OFLAG], 
+				(unsigned long long int) expected->flags[OFLAG]);
 		}
 	} else if(actual->pc != expected->pc) {
 		if(DEBUGTESTER) {
-			printf("\tactual pc: %lld, expected pc: %lld\n",
-				(long long int) actual->pc, 
-				(long long int) expected->pc);
+			printf("\tactual pc: %" PRIu64 ", expected pc: %" PRIu64 "\n",
+				(unsigned long long int) actual->pc, 
+				(unsigned long long int) expected->pc);
 		}
 	} else {
 		return 1;

@@ -1,0 +1,25 @@
+(
+(jmp jmp1)
+(irmovq 99 %r9)
+jmp1
+(irmovq 1 %rax)
+(addq %rax %rcx)
+(jg jgLabel)
+(irmovq 98 %r9)
+jgLabel
+(subq %rax %rcx)
+(je jeLabel)
+(irmovq 96 %r9)
+jeLabel
+(jge jgeLabel)
+(irmovq 95 %r9)
+jgeLabel
+(jle jleLabel)
+(irmovq 94 %r9)
+jleLabel
+(subq %rax %rcx)
+(jl jlLabel)
+(irmovq 93 %r9)
+jlLabel
+(halt)
+)

@@ -1,5 +1,6 @@
 (
-(irmovq 9 %rax)
-(rrmovq %rax %rcx)
+(irmovq 1 %rax)
+(pushq %rax)
+(popq %rcx)
 (halt)
 )

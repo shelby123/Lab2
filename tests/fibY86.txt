@@ -1,0 +1,42 @@
+(
+; wrapper to call fib
+(irmovq 0 %rdi)
+(call fib)
+(halt)
+
+
+
+; argument is in rdi
+; return value is in rax
+; check if value is 1 or 0
+fib
+(rrmovq %rdi %r10) 
+; check if r10 is 0
+(andq %r10 %r10)
+(jg continue)
+(rrmovq %rdi %rax)
+(jmp done )
+
+; check if r10 is 1
+(irmovq 1 %r11)
+(subq %r11 %r10)
+(jne continue)
+(rrmovq %rdi %rax)
+(jmp done)
+
+continue
+; recursive step. 
+; fib n-1 + fib n - 2
+(irmovq 1 %r11) 
+(subq %r11 %rdi)
+(call fib)
+(rrmovq %rax %r10)
+(subq %r11 %rdi)
+(call fib)
+(addq %r10 %rax)
+
+
+done
+(ret)
+
+)

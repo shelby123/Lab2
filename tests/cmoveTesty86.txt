@@ -1,0 +1,14 @@
+(
+(irmovq 1 %rax)
+(andq %rax %rax)
+(cmovne %rax %rcx)
+(cmovg %rax %rdx)
+(cmovge %rax %rbx)
+(subq %rax %r13)
+(cmovl %rax %rsp)
+(cmovle %rax %rbp)
+(addq %rax %r13)
+(cmove %rax %rsi)
+
+(halt)
+)
