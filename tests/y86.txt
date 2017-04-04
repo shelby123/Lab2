@@ -1,6 +1,9 @@
 (
-(irmovq 1 %rax)
-(pushq %rax)
-(popq %rcx)
+(irmovq array %rax)
+(mrmovq %rax %rcx)
 (halt)
+
+(pos 100)
+array
+(qword 1)
 )

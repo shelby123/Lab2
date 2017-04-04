@@ -83,7 +83,8 @@ void mapMemValue(FILE *file, state *s) {
     if(DEBUGINITSTATE) {
         printf("Adding value %d to address %d\n", map[VAL], map[VAL]);
     }
-    s->memory[map[ADDR]] = map[VAL];
+    if(s->memory[map[ADDR]] == 0)
+        s->memory[map[ADDR]] = map[VAL];
 
     free(map);
 }

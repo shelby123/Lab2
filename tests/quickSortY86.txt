@@ -3,7 +3,7 @@
 (irmovq array %rdi)
 (irmovq 0 %rsi)
 ; this immediate must be the length of the array
-(irmovq 1 %rdx)
+(irmovq 1000 %rdx)
 (call quicksort)
 (halt)
 
@@ -42,6 +42,7 @@ quicksort
 ; result of partition-- partition index-- is in rax. 
 ; let's move it to r10 and save it. 
 (rrmovq %rax %r10)
+
 
 ; call quicksort the first time. 
 ; ( array (in rdi), low (in rsi), pi (in r10) - 1 )
@@ -94,18 +95,21 @@ done
 ; return the result in rax
 partition
 
+(pushq %r14) ; need this as an auxilary storage 
 ; store the pivot into r8. 
 (pushq %r8)
 ; need to get array[high] (rdi + rdx*8)
 (pushq %rdi)
 (pushq %rsi)
 (pushq %rdx)
+(rrmovq %rdx %rsi)
 (call getOffset)
 (popq %rdx)
 (popq %rsi)
 (popq %rdi)
 ; the memory location (rdi + rdx*8) is in rax. 
 (mrmovq %rax %r8)
+
 
 ; store i (low - 1) in r9
 (pushq %r9)
@@ -185,11 +189,13 @@ loop
 ; array[j] is on the stack. We need this to be 
 ; popped into rsi. 
 ; array[i] is in rax. we need this to be in rdi
+(popq %r14) ; array[j] is in r14
 (pushq %rdi)
 (pushq %rsi)
 (pushq %rdx)
 (rrmovq %rax %rdi)
-(popq %rsi)
+(rrmovq %r14 %rsi)
+;(popq %rsi)
 (call swap)
 (popq %rdx)
 (popq %rsi)
@@ -198,6 +204,12 @@ loop
 endIf
 
 (popq %r11) ; restore the old value of r11 
+
+; increment j. J is in r10. 
+(pushq %r11) 
+(irmovq 1 %r11)
+(addq %r11 %r10)
+(popq %r11)
 
 ; check if j < high 
 ; j is in r10. high is in rdx
@@ -210,6 +222,8 @@ checkCondition
 (subq %r10 %r11)
 (popq %r11) ; popping shouldn't change the CC
 (jg loop)
+
+endLoop
 
 ; at the end of the loop. 
 ; need i + 1
@@ -251,11 +265,13 @@ checkCondition
 ; array[i+1] is on the stack. We need this to be 
 ; popped into rsi. 
 ; array[high] is in rax. we need this to be in rdi
+(popq %r14) ; array[i+1] is now in r14.
 (pushq %rdi)
 (pushq %rsi)
 (pushq %rdx)
 (rrmovq %rax %rdi)
-(popq %rsi)
+(rrmovq %r14 %rsi)
+;(popq %rsi)
 (call swap)
 (popq %rdx)
 (popq %rsi)
@@ -268,7 +284,10 @@ checkCondition
 (popq %r10)
 (popq %r9)
 (popq %r8)
+(popq %r14)
+
 (ret)
+
 
 
 
@@ -285,13 +304,13 @@ getOffset
 (rrmovq %rsi %r10)
 (rrmovq %rdi %r11)
 (jmp checkIfZero)
-loop
+GetOffsetLoop
 (subq %r12 %r10)
 (addq %r13 %r11)
 
 checkIfZero
 (andq %r10 %r10)
-(jg loop)
+(jg GetOffsetLoop)
 
 ; done
 (rrmovq %r11 %rax)
@@ -333,7 +352,7 @@ swap
 ; ****************** ARRAY *******************
 (pos 4096)
 array
-(qword 1 2)
+(qword 65793 2)
 
 
 )

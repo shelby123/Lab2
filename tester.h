@@ -13,3 +13,4 @@ int memoriesEqual(state *actual, state *expected);
 int infoEqual(state *actual, state *expected);
 void runFibTests(void);
 void runQuickSortTests(void);
+int quickSortArraysEqual(state *exp, state *act, int numElems);

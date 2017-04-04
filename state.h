@@ -5,7 +5,7 @@
 #include "instructions.h"
 
 
-#define MEMSIZE 5000
+#define MEMSIZE 30000
 #define BYTESIZE 1
 #define NUMREG 15
 
