@@ -1,11 +1,68 @@
 Shelby McGarrah
 sm52376
 
+To make and run the assembler: 
+make assembler
+assembler {FILE_NAME}
+
+(assembler writes to stdout)
 
 
 
+NOTE: simulator recieves a file off of the command line, and then just runs the simulator. Because of the difficulty of debugging int that, I wrote a tester file that would call "runSimulator" directly, and get the state struct back in return. I wasn't sure which version you wanted turned in, the one that accepts the file on the command line, or the one that calls runSimulator from tester.c, which is more adept for testing. I just turned in the one that accepts a file name off of the command line. If you want to run the tester, comment out main in y86-simulator, comment in the main in tester.c, and run 
+
+make clean; make tester
+./tester
+
+(don't comment in the runQuickSortTests line unless you want to wait a long time for an output :))
+
+otherwise, to make the simulator, just run
+
+make clean; make simulator
+./simulator {FILE_NAME}
 
 
+if you want to print out the resulting register files without runing ./tester, you can change the #define PRINTRESULT to a 1, and that will do it. Just remake and run it.
+
+
+
+As a side, my tester can be run with the following file format as the "expected results" file: 
+(
+
+MEMORY
+
+)
+
+(registers)
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+
+(flags (z, s, o))
+0
+0
+0
+
+(status)
+0
+
+(pc)
+0 
+
+
+I do wish I could have made this easier for you to grade, Ben, but with such loose specifications, I just did the best I could. 
 
 
 

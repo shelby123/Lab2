@@ -1,23 +1,11 @@
-/*
- * Note: 
- *  - currently doesn't account for multiple memory 
- *  values for the same memory location.
- *
- *	- need to do mrmovq? What was the schema we decided
- *	again?  (I think we decided to go with the book example
- *	but i don't feel like changing my assembler right now)
- *	
- *	- how much space should we allocate for the stack? like
- *	lol.
- *	
- *	- need to do LEAVE, IADDQ and NOOP
- */
-
 
 #include "y86-simulator.h"
  
-#define DEBUG 1
+#define DEBUG 0
 
+#define COUNTINSTR 0
+
+#define PRINTRESULT 0
 
 
 /* 
@@ -25,13 +13,13 @@
  * the first argument of the command line.
  * (Wrapper for command line start)
  */ 
-// int main(int argc, char** argv ) {
-//     assert(argc >= 2);
-//     if(DEBUG)
-//         printf("Starting the simulator\n");
-//     char* fileName = argv[FILENAME];
-//     runSimulation(fileName);
-// }
+int main(int argc, char** argv ) {
+    assert(argc >= 2);
+    if(DEBUG)
+        printf("Starting the simulator\n");
+    char* fileName = argv[FILENAME];
+    runSimulation(fileName);
+}
 
 /*
  * Run the simulation, given the input file name.
@@ -45,9 +33,15 @@ state* runSimulation(char* fileName) {
     state *s = stalloc();
     loadInMemValues(file, s);
 
+    uint64_t numInstr = 0;
     while(s->status == NORMAL) {
     	executeInstruction(s);
+    	numInstr++;
     }
+    if(COUNTINSTR) 
+    	printf("number of instructions : %"PRIu64"\n", numInstr);
+    if(PRINTRESULT) 
+    	printRegisters(s);
 
     fclose(file);
     return s;
@@ -139,6 +133,25 @@ uint64_t getQuadWord(state *s) {
 }
 
 /*
+ *
+ */
+uint64_t getQuadWordLoc(state *s, uint64_t location) {
+	uint64_t acc = 0;
+	uint64_t readIn = location;
+	if(DEBUG) {
+		printf("reading a quad word at %" PRIu64 "\n",
+			  readIn);
+	}
+	// least significant byte is first. 
+	for(int i = 0; i < 8; i++) {
+		uint64_t byte = (s->memory[readIn] & 0xFF);
+		acc += (byte) << i*8;
+		readIn++;
+	}
+	return acc;
+}
+
+/*
  * 	pre: s != null
  * 	post: set the condition flags for s based on the 
  *	two operands and the result. 
@@ -186,6 +199,11 @@ instruction simulation functions
  */
 void halt(state *s) {
 	s->status = HALT;
+	if(DEBUG) {
+		printf("halting. Register values are \n");
+		printRegisters(s);
+		printf("the pc is %"PRIu64"\n", s->pc);
+	}
 }
 
 /* 
@@ -298,7 +316,7 @@ void rmmovq(state *s) {
 	uint64_t memoryLocation = s->registers[registers[REGB]] + displacement;
 
 	// put the contents of register A into the memory location
-	uint64_t value = s->registers[REGA];
+	uint64_t value = s->registers[registers[REGA]];
 	uint64_t mask = 0xFF;
 
 	if(DEBUG) {
@@ -309,13 +327,19 @@ void rmmovq(state *s) {
 		printf(" %" PRIu64 " (displacement: %" PRIu64 ")\n", 
 			  memoryLocation, 
 			  displacement);
+
 	}
 
 	for(int i = 0; i < 8; i++) {
-		char temp = (char)(value & mask);
+		char temp = (char)((value & mask)>>i*8);
 		s->memory[memoryLocation] = temp;
 		mask = mask << 8;
 		memoryLocation++;
+	}
+	if(value == 65793) {
+		printf("value at loc %"PRIu64" is %"PRIu64"\n",
+			s->registers[registers[REGB]] + displacement,
+			getQuadWordLoc(s, s->registers[registers[REGB]] + displacement));
 	}
 
 	free(registers);
@@ -353,9 +377,9 @@ void mrmovq(state *s) {
 
 	if(DEBUG) {
 		printf("mrmovq: \n");
-		printf("\tvalue to reg %d: %" PRIu64 "\n", registers[REGA],
+		printf("\tvalue to reg %s: %" PRIu64 "\n", registerNames[registers[REGA]],
 			  value);
-		printf("\tmemory location from reg %d:", registers[REGB]);
+		printf("\tmemory location from reg %s:", registerNames[registers[REGB]]);
 		printf(" %" PRIu64 " (displacement: %" PRIu64 ")\n", 
 			  memoryLocation, 
 			  displacement);
@@ -595,10 +619,11 @@ void call(state *s) {
 	if(DEBUG) {
 		printf("making call to funct at %"PRIu64"\n", dest);
 		printf("pushing return address %"PRIu64"\n", returnAddr);
+		printf("pushing onto stack at loc %"PRIu64"\n", memoryLocation);
 	}
 
 	for(int i = 0; i < 8; i++) {
-		char temp = (char)(returnAddr & mask);
+		char temp = (char)((returnAddr & mask)>>i*8);
 		s->memory[memoryLocation] = temp;
 		mask = mask << 8;
 		memoryLocation++;
@@ -622,6 +647,7 @@ void ret(state *s) {
 	// the stack 
 	s->pc = s->registers[RSP];
 	uint64_t returnTo = getQuadWord(s);
+
 
 	uint64_t mask = 0xFF;
 	uint64_t memoryLocation = s->registers[RSP];
@@ -689,15 +715,16 @@ void pushq(state *s) {
 		pushCount++;
 		pushCounts[registers[REGA]]++;
 		printf("pushing the value %"PRIu64" from register %s onto the stack\n", value, registerNames[registers[REGA]]);
+		printf("memory location %"PRIu64"\n", memoryLocation);
 		printf("num times push has been called: %d\n", pushCount);
 		for(int i = 0 ; i < NUMREG; i++) {
 			printf("%s: %d,", registerNames[i], pushCounts[i]);
 		}
 		printf("\n");
 	}
-
+	int isLocation = memoryLocation == 4944;
 	for(int i = 0; i < 8; i++) {
-		char temp = (char)(value & mask);
+		char temp = (char)((value & mask)>>i*8);
 		s->memory[memoryLocation] = temp;
 		mask = mask << 8;
 		memoryLocation++;

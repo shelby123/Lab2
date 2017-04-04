@@ -607,6 +607,11 @@ void processRegB(op* instruction, FILE* file) {
         default: 
             instruction->rB = NOTFOUND;
     }
+    if(instruction->instr == MRMOVQ) {
+        int temp = instruction->rA;
+        instruction->rA = instruction->rB;
+        instruction->rB = temp;
+    }
 }
 
 /*

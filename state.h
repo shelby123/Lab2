@@ -5,7 +5,7 @@
 #include "instructions.h"
 
 
-#define MEMSIZE 5000
+#define MEMSIZE 16777215
 #define BYTESIZE 1
 #define NUMREG 15
 
@@ -48,7 +48,6 @@ void printRegisters(state *s) {
 		printf("%s : %"PRIu64"\n", registerNames[i], s->registers[i]);
 	}
 }
-
 
 
 

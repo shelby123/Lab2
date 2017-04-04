@@ -2,8 +2,10 @@
 
 #include "tester.h"
 
-#define NUMTESTS 11
-#define DEBUGTESTER 1
+#define NUMTESTS 13
+#define DEBUGTESTER 0
+
+#define ARRAYLOC 4096
 
 char* assemblerFiles[NUMTESTS] = {"tests/test1.txt", 
 							"tests/test2.txt",
@@ -15,7 +17,9 @@ char* assemblerFiles[NUMTESTS] = {"tests/test1.txt",
 							"tests/test8.txt",
 							"tests/fibTest.txt",
 							"tests/fibTest-2.txt",
-							"tests/fibTest-3.txt"};
+							"tests/fibTest-3.txt",
+							"tests/test9.txt",
+							"tests/test10.txt"};
 
 char* expectedFiles[NUMTESTS] = {"tests/test1Res.txt",
 							"tests/test2Res.txt",
@@ -27,7 +31,9 @@ char* expectedFiles[NUMTESTS] = {"tests/test1Res.txt",
 							"tests/test8Res.txt",
 							"tests/fibTestRes.txt",
 							"tests/fibTestRes-2.txt",
-							"tests/fibTestRes-3.txt"};
+							"tests/fibTestRes-3.txt",
+							"tests/test9Res.txt",
+							"tests/test10Res.txt"};
 							
 char* testNames[NUMTESTS] = {"1: irmovq + addq",
 							"2: irmovq + subq",
@@ -39,20 +45,21 @@ char* testNames[NUMTESTS] = {"1: irmovq + addq",
 							"8: push + pop",
 							"9: fib base case 0",
 							"10: fib base case 1",
-							"11: fib with n = 2"};
+							"11: fib with n = 2",
+							"12: multiple push/ pop",
+							"13: multiple push/ pop"};
 
 
 
-int main() {
-	for(int testNum = 0; testNum < NUMTESTS; testNum++) {
-		runTest(assemblerFiles[testNum], 
-				expectedFiles[testNum],
-				testNames[testNum]);
-	}
-	runFibTests();
-	runQuickSortTests();
-}
-
+// int main() {
+// 	for(int testNum = 0; testNum < NUMTESTS; testNum++) {
+// 		runTest(assemblerFiles[testNum], 
+// 				expectedFiles[testNum],
+// 				testNames[testNum]);
+// 	}
+// 	runFibTests();
+// 	// runQuickSortTests();
+// }
 
 #define NUMFIBTESTS 4
 char* fibTestFiles[NUMFIBTESTS] = 
@@ -62,12 +69,11 @@ char* fibTestFiles[NUMFIBTESTS] =
 		"tests/fibTests/test3.txt",
 		"tests/fibTests/test4.txt"
 	};
-
 int fibResults[NUMFIBTESTS] = 
 	{
-		2,
+		2, 
 		3, 
-		5,
+		5, 
 		89
 	};
 
@@ -87,21 +93,35 @@ void runFibTests() {
 }
 
 
-#define NUMQUICKSORTTESTS 2
+#define NUMQUICKSORTTESTS 4
 char* quickSortTestFiles[NUMQUICKSORTTESTS] = 
 	{
-		"tests/quickSortTests/qsTest1.txt",
-		"tests/quickSortTests/qsTest2.txt"
+		
+		"tests/quickSortTests/qsTest3.txt",
+		"tests/quickSortTests/qsTest4.txt",
+		"tests/quickSortTests/qsTest5.txt",
+		"tests/quickSortTests/qsTest6.txt"
 	};
 
 char* quickSortResultFiles[NUMQUICKSORTTESTS] = 
 	{
-		"tests/quickSortTests/qsTest1Res.txt",
-		"tests/quickSortTests/qsTest2Res.txt"
+		
+		"tests/quickSortTests/qsTest3Res.txt",
+		"tests/quickSortTests/qsTest4Res.txt",
+		"tests/quickSortTests/qsTest5Res.txt",
+		"tests/quickSortTests/qsTest6Res.txt"
+	};
+
+int numElems[NUMQUICKSORTTESTS] = 
+	{
+		4,
+		11,
+		101,
+		1001
 	};
 
 void runQuickSortTests() {
-	printf("\n\n\n********************************\nRunning Quick Sort tests\n");
+	printf("\n\nRunning Quick Sort tests\n");
 	for(int i = 0; i < NUMQUICKSORTTESTS; i++) {
 		state *result = runSimulation(quickSortTestFiles[i]);
 		state *expectedState = stalloc();
@@ -110,8 +130,7 @@ void runQuickSortTests() {
 			printf("\nLoad expected values into memory\n");
 
 		loadInMemValues(file, expectedState);
-
-		if(memoriesEqual(result, expectedState)) {
+		if(quickSortArraysEqual(expectedState, result, numElems[i])) {
 			printf("passed quick sort test %d\n", i);
 		} else {
 			printf("FAILED QUICK SORT TEST %d\n", i);
@@ -232,7 +251,30 @@ int infoEqual(state *actual, state *expected) {
 
 }
 
-
+int quickSortArraysEqual(state *expe, state *act, int numElems) {
+	uint64_t loc = ARRAYLOC;
+	uint64_t stop = numElems*8 + ARRAYLOC;
+	// printf("\n\n\n%u\n", (unsigned char) act->memory[ARRAYLOC] );
+	// printf("%u\n", (unsigned char) expe->memory[ARRAYLOC] );
+	for(int i = loc; i < stop; i++) {
+		unsigned char c  = expe->memory[i];
+		unsigned char c1 = act->memory[i];
+	// 	printf("\n%u\n", (unsigned char) act->memory[i] );
+	// printf("%u\n", (unsigned char) expe->memory[i] );
+	// printf("%u\n", c);
+	// printf("%u\n", c1);
+		if(c != c1) {
+			if(DEBUGTESTER) {
+				printf("\tthe actual memory location %d: %u, expected memory location: %u\n",
+					i,
+					  c1, 
+					  c);
+			}
+			return 0;
+		}
+	}
+	return 1;
+}
 
 
 

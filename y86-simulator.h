@@ -28,6 +28,7 @@ unsigned char getInstructionCode(state *s);
 unsigned char getFunctionCode(state *s);
 char* getRegisters(state *s);
 uint64_t getQuadWord(state *s);
+uint64_t getQuadWordLoc(state *s, uint64_t location);
 
 /* instruction execution methods */
 void halt(state *s);
