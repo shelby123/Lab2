@@ -1,4 +1,4 @@
-#define NUMINSTR 16
+#define NUMINSTR 15
 #define NUMOPQ 4
 #define NUMBRANCH 7
 #define NUMMOVE 7
@@ -17,11 +17,10 @@
 #define RET 11
 #define PUSHQ 12
 #define POPQ 13
-#define IADDQ 14
-#define LEAVE 15
+#define PAUSE 15
 
 
-int instrBytes[NUMINSTR] = {1, 1, 1, 2, 10, 10, 10, 2, 9, 2, 9, 1, 2, 2, 10, 1};
+//int instrBytes[NUMINSTR] = {1, 1, 1, 2, 10, 10, 10, 2, 9, 2, 9, 1, 2, 2, 10, 1};
 
 char* registerNames[15] = { "rax", "rcx", "rdx", "rbx", "rsp", "rbp", 
 		"rsi", "rdi", "r08", "r09", "r10", "r11", "r12", "r13", "r14"};

@@ -1,0 +1,461 @@
+(
+; wrapper to call the quick sort algo
+(irmovq array %rdi)
+(irmovq 0 %rsi)
+; this immediate must be the length of the array
+(irmovq 101 %rdx)
+(call quicksort)
+(halt)
+
+
+
+
+
+; ************ QUICKSORT *****************
+; array is in rdi
+; low index is in rsi
+; high index is in rdx
+; return the result in rax
+quicksort
+;(pause)
+
+; check if low (in rsi) < high (in rdx)
+; we will put high into r10, minus low from it, 
+; and see if the result is greater than zero.
+; go to done if low >= high or high-low <= 0
+(pushq %r10)
+(rrmovq %rdx %r10)
+(subq %rsi %r10)
+(popq %r10) ; popping won't change the CC
+(jle done)
+
+; call partition.
+; array, low, high are in the right places. 
+; but let's save them on the stack just in case. 
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(call partition)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+
+; result of partition-- partition index-- is in rax. 
+; let's move it to r10 and save it. 
+(rrmovq %rax %r10)
+
+
+; call quicksort the first time. 
+; ( array (in rdi), low (in rsi), pi (in r10) - 1 )
+; so we just need to decrement pi (r10), and move
+; it into rdx
+; save all the values into the stack
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r10)
+(pushq %r11)
+(irmovq 1 %r11)
+(subq %r11 %r10) ; decrement pi by 1
+(rrmovq %r10 %rdx) ; move pi into the 3rd argument
+(call quicksort)
+(popq %r11)
+(popq %r10)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+
+; call quicksort the second time. 
+; ( array (in rdi), pi (in r10) + 1 , high (in rdx))
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r10)
+(pushq %r11)
+(irmovq 1 %r11)
+(addq %r11 %r10) ; increment pi by 1
+(rrmovq %r10 %rsi) ; move pi into the 2nd argument
+(call quicksort)
+(popq %r11)
+(popq %r10)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+
+done
+(ret)
+
+
+
+
+
+; ************ PARTITION *****************
+; array is in rdi
+; low index is in rsi
+; high index is in rdx
+; return the result in rax
+partition
+
+(pushq %r14) ; need this as an auxilary storage 
+; store the pivot into r8. 
+(pushq %r8)
+; need to get array[high] (rdi + rdx*8)
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(rrmovq %rdx %rsi)
+(call getOffset)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; the memory location (rdi + rdx*8) is in rax. 
+(mrmovq %rax %r8)
+
+
+; store i (low - 1) in r9
+(pushq %r9)
+(pushq %r10) ; temporarily use r10 as incr var
+(irmovq 1 %r10)
+(rrmovq %rsi %r9)
+(subq %r10 %r9)
+(popq %r10) ; restore the old value of r10
+
+; LOOP
+; store j in r10
+(pushq %r10)
+(rrmovq %rsi %r10)
+(jmp checkCondition)
+
+; loop body
+loop
+
+; check if array[j] <= pivot
+; store array[j] in r11
+; array + j * 8  or rdi + r10 * 8. 
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r10)
+(rrmovq %r10 %rsi)
+(call getOffset)
+(popq %r10)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; memory location array + j * 8 is in rax. 
+; store array[j] value in r11
+(pushq %r11)
+(mrmovq %rax %r11)
+
+; now we have array[j] in r11, and pivot in r8.
+; we need to check if r11 <= r8. 
+; put r8 in r12, and do r12 - r11, check if 
+; 0 <= r12 - r11 (jump to the end of the if 
+; statement if 0 > r12 - r11)
+(pushq %r12)
+(rrmovq %r8 %r12)
+(subq %r11 %r12)
+(popq %r12)
+(jl endIf)
+
+; now we're inside of the if statement. 
+; rax is holding memory location array[j]
+
+; need to increment i. i is in r9
+(pushq %r12)
+(irmovq 1 %r12)
+(addq %r12 %r9)
+(popq %r12)
+
+; call swap with array[i] and array[j]
+; array[i] needs to go into rdi
+; array[j] needs to go into rsi
+
+; temporarily store rax (array[j]) on the stack. 
+(pushq %rax)
+
+; get array[i]. i is in r9. array is in rdi
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r9)
+(rrmovq %r9 %rsi)
+(call getOffset)
+(popq %r9)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; array[i] is in rax. We need it to be in rdi. 
+
+; array[j] is on the stack. We need this to be 
+; popped into rsi. 
+; array[i] is in rax. we need this to be in rdi
+(popq %r14) ; array[j] is in r14
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(rrmovq %rax %rdi)
+(rrmovq %r14 %rsi)
+;(popq %rsi)
+(call swap)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi) 
+
+endIf
+
+(popq %r11) ; restore the old value of r11 
+
+; increment j. J is in r10. 
+(pushq %r11) 
+(irmovq 1 %r11)
+(addq %r11 %r10)
+(popq %r11)
+
+; check if j < high 
+; j is in r10. high is in rdx
+; check if 0 < high - j.
+; put high in r11, subtract j 
+; and jump back into the loop if greater than zero 
+checkCondition
+(pushq %r11) 
+(rrmovq %rdx %r11)
+(subq %r10 %r11)
+(popq %r11) ; popping shouldn't change the CC
+(jg loop)
+
+endLoop
+
+; at the end of the loop. 
+; need i + 1
+; i is in r9. 
+(pushq %r12)
+(irmovq 1 %r12)
+(addq %r12 %r9)
+(popq %r12)
+
+; i + 1 is in r9
+; need array[i+1] in rdi
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r9)
+(rrmovq %r9 %rsi)
+(call getOffset)
+(popq %r9)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; array + (i+1)*8 is in rax
+
+; temporarily store array[i+1] on the stack 
+(pushq %rax)
+
+; need array[high] in rsi
+; high is in rdx
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(rrmovq %rdx %rsi)
+(call getOffset)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; now array[high] is in rax. 
+
+; array[i+1] is on the stack. We need this to be 
+; popped into rsi. 
+; array[high] is in rax. we need this to be in rdi
+(popq %r14) ; array[i+1] is now in r14.
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(rrmovq %rax %rdi)
+(rrmovq %r14 %rsi)
+;(popq %rsi)
+(call swap)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi) 
+
+; now we just need to return i + 1 in rax
+; i + 1 is in r9
+(rrmovq %r9 %rax)
+
+(popq %r10)
+(popq %r9)
+(popq %r8)
+(popq %r14)
+
+(ret)
+
+
+
+
+
+; ****************** GET OFFSET ****************************
+getOffset
+; array in rdi. index in rsi
+(pushq %r10) ; loop control in r10
+(pushq %r11) ; accumulator in r11
+(pushq %r12) ; 1
+(pushq %r13) ; 8
+(irmovq 1 %r12)
+(irmovq 8 %r13)
+(rrmovq %rsi %r10)
+(rrmovq %rdi %r11)
+(jmp checkIfZero)
+GetOffsetLoop
+(subq %r12 %r10)
+(addq %r13 %r11)
+
+checkIfZero
+(andq %r10 %r10)
+(jg GetOffsetLoop)
+
+; done
+(rrmovq %r11 %rax)
+(popq %r13)
+(popq %r12)
+(popq %r11)
+(popq %r10)
+(ret)
+
+
+
+; ********************* SWAP *******************************
+; array[i] is in rdi
+; array[j] is in rsi
+swap
+
+; store the value array[i] in r10
+(pushq %r10)
+(mrmovq %rdi %r10)
+
+; store the value array[j] in r11
+(pushq %r11)
+(mrmovq %rsi %r11)
+
+; set array[i] to r11
+(rmmovq %r11 %rdi)
+
+; set array[j] to r10
+(rmmovq %r10 %rsi)
+
+(popq %r11)
+(popq %r10)
+
+(ret)
+
+
+
+
+; ****************** ARRAY *******************
+(pos 4096)
+array
+(qword 
+#x8bbcf97e8a198949
+#x1ee2dab49aced211
+#x74b086881a4c4244
+#x5eee8ae6728cb6f2
+#x5dcff7a8968d786b
+#x6f19dd067d291466
+#x40a1f020a0d195a6
+#x90ee037b96cd857
+#x125028362cf768d8
+#x6f248e701395d97d
+#x31bbda3a53f27d9c
+#x3e782931b90574ce
+#x993e6b698e751cee
+#x645800ed695426e4
+#x59001fafc3a95226
+#x936be9a760b857a1
+#xf352006fdd963288
+#xab52b9a84b73f945
+#x2305453271255d30
+#x35e1534eda38bdf2
+#x63375d9d7b6ec534
+#xb6825dd141584e68
+#xc275dc6ac794bb9
+#x3a34969062393300
+#xd6f507615c7e3f0c
+#xf6540060b1e5a365
+#x9da8035db501112a
+#xeacde26d137159c4
+#xe0b8af306c4f9bf8
+#xd9127c330d5c4fe
+#xc95c3d863fd680cf
+#x263e7c0ccd35895e
+#x8f6036b65b9e86b0
+#x51401d96aa477acb
+#xf0f342977af2701f
+#xbd209e67414f3c3
+#x3173ea2f425e2ead
+#xd6ac6eb76d3baa34
+#xe7692342b1d85bef
+#x66acd882ad3fd756
+#xe4060802835c5711
+#xfe3a740af34061d3
+#x9fad49951e636601
+#xb3d5fad50c40ddc5
+#xf40bb96a57922305
+#x943fcebe8c2ef035
+#xb57a71aaf7a8638c
+#xfff4b20604727abe
+#xe199db76c318f83c
+#x617c99eb235b3b4a
+#x84e66a14af89395f
+#xb0fd9269a222f3cf
+#x5dab1c92f4cf7a1a
+#x440dfae8270e1a43
+#xb4e3c780ee0ff35
+#x883ff809b0e6e5ef
+#x9f0a3c318400f0d6
+#xc97c07028beb324d
+#x67637d3d215c4f86
+#x4ef75acc7a3bbc1a
+#xad5155cce7298efd
+#xd53e537b9d587141
+#x3be0e0794f26b45f
+#xfc89367a3ff2a489
+#x25e486a3eafa93ab
+#x23bf44c91ff76912
+#x6d05d37f890dee9c
+#xee2e0251513b1b40
+#x86e8facf5bed4f25
+#x3da4b2ac21057773
+#x55c4376f0da07408
+#x64
+#x9cdd6818c3e7024c
+#xfcd1c3a827fb8d6
+#x1820201899dca3e3
+#x43a7fa863ac43cbd
+#xd78ef8eb1cc29539
+#x942a01ea81dee3cd
+#xaeb2fd319a06a782
+#x607280a6bd6c53ba
+#x748434b1ae4a8864
+#xb847670049e1eab
+#x8b4f8505059bd1d6
+#xd4198ca28687f2da
+#x5289a8932a24ecca
+#x896a4216f3880b97
+#x8b1ffcda5be64060
+#xf8f767ad141801d7
+#x298dc54dba450b0a
+#x8607fff0cb406bae
+#xebaab216e94883ba
+#x5f61dca4aa6249cc
+#x0
+#x7661c42c8816332
+#x8da4b2bbe3b695c1
+#xac8d40783365b2e0
+#x3d3df3222eda52e2
+#x3118fd1f8c3704e9
+#x14d18410ce3224e8
+#x94e24711ee2c7f6
+#xcba6937cb6a68a60
+)
+
+
+)

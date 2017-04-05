@@ -1,0 +1,43 @@
+0 9
+1 12
+2 36
+3 63
+4 114
+5 192
+6 321
+7 528
+8 864
+9 1407
+10 2286
+11 3708
+12 6009
+13 9732
+14 15756
+15 25503
+16 41274
+17 66792
+18 108081
+19 174888
+20 282984
+
+
+
+How many instructions/second can your simulator emulate? How did you organize the memory for your simulator? When programming, did you follow the register assignment discipline? Did you use all of the available y86 instructions? If not, why not? Could your recursive Fibonacci program have executed faster by ignoring the stack discipline? What was the most useful tool you used in developing your simulator? Why was it useful? Other than your assembler and simulator, what tools, if any, did you develop?
+
+I measured the average instructions per second using my fib program. With an n value of 30, the program was running 34806561 instructions, and it took an average of 3.4 seconds. So 34806561/ 3.4 is roughly 10 million (10237223) instructions per second. 
+
+To keep things simple, I just laid out my memory with the code at the bottom of the memory, at address 0. I placed the stack at the bottom of the memory, and grew it down towards 0. Of course, there isn't any real check to see if we're overriding code with our stack growth, but with such a simple simulator, and such a large memory space, I just stuck to a simple linear stack growth. 
+
+When I was coding in y86, I followed the typical x86 calling conventions. Though I took extra precautions and often pushed registers onto the stack to save them, even if they were caller saved, and I was in a callee function, for example. But keeping the consistent calling conventions allowed for a simpler exchange of information between methods. 
+
+The only y86 instruction that I didn't use was the xorq instruction. (I also didn't use iaddq or leaveq because they weren't specified in the book.) The only reason I didn't use xorq was because I never needed to. I used andq in its place if necessary. I also didn't use conditional move, just because conditional jumps made more sense to me at the time. It's easier to say "if this is true, jump here and continue", than "if this is true, move a value into a register and continue executing as normal". (I figured it would be easier to debug, too). But because of the y86's limited instruction set, I used the rest of the instructions consistently. 
+
+I took a lot of precautions to try and keep my code from breaking in the fibonacci subroutine. I probably could have spared the extra pops and pushes, and so it definitely would have been more efficient to just pass values down the chain without saving them. I didn't even consider not using the traditional calling conventions, though, as I wanted to be able to debug my code more easily. 
+
+I didn't use any tools in particular to develop my simulator. I just used basic debugging techniques, print statements, and comparing return values. I developed what I thought was a fairly good testing rig for my simulator. It's able to compare the values in the registers, memory and whatnot, and determine if the exit state is what it should be. I also wrote up debugging comments as I went, and that provided me with most of the insight into the innerworkings of my simulator that I needed to know. If I ever needed to examine what what happening at a particular spot in the execution, I'd just insert a halt, and see what the values of the state struct were. I left a lot of my tests in the tar file that I turned in (though I left out some of the messier ones). 
+
+
+
+
+
+

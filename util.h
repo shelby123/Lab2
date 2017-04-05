@@ -3,6 +3,8 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
+
+
 // num digits in 2^64 
 #define MAXNUMBERSIZE 19
 

@@ -5,6 +5,7 @@
 #include "instructions.h"
 
 
+
 #define MEMSIZE 16777215
 #define BYTESIZE 1
 #define NUMREG 15

@@ -1,9 +1,4 @@
 (
-(irmovq array %rax)
-(mrmovq %rax %rcx)
-(halt)
-
-(pos 100)
-array
-(qword 1)
+(pause)
+(halt) 
 )

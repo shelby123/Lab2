@@ -7,6 +7,7 @@
 
 // initial state includes util and state
 #include "initialState.h"
+#include "pauseRoutine.c"
 
 
 #define FILENAME 1
@@ -43,9 +44,10 @@ void call(state *s);
 void ret(state *s);
 void pushq(state *s);
 void popq(state *s);
+void pause(state *s);
 
-void (*pFuncs[12])() = {halt, nop, rrmovq, irmovq, rmmovq,
-			mrmovq, opq, branch, call, ret, pushq, popq};
+void (*pFuncs[13])() = {halt, nop, rrmovq, irmovq, rmmovq,
+			mrmovq, opq, branch, call, ret, pushq, popq, pause};
 
 /* op functions */
 uint64_t addq(state *s, uint64_t val1,  uint64_t val2);

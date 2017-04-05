@@ -7,7 +7,7 @@ sm52376
 
 General flow: 
 
-main
+main 
     - parse input into a linear string of tokens
     - loop through the string of tokens to print out 
     information.
@@ -445,7 +445,8 @@ void processString(op* instruction, FILE* file) {
  *
  */
 int isSequence(op* instruction) {
-    return instruction->instr >= BEGINSEQUENCE;
+    return  BEGINSEQUENCE <=instruction->instr &&
+        instruction->instr <= ENDSEQUENCE ;
 }
     
 /*

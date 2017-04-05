@@ -13,7 +13,7 @@ sm52376
 
 #define NUMREG 15
 #define SHORTREG 2
-#define NUMINSTR 23
+#define NUMINSTR 24
 #define NUMOPQ 4
 #define NUMBRANCH 7
 #define NUMMOVE 7
@@ -47,6 +47,7 @@ sm52376
 #define STRING 22
 
 #define BEGINSEQUENCE 19
+#define ENDSEQUENCE 22
 
 #define R8 8
 #define R9 9
@@ -70,11 +71,11 @@ char* registers[NUMREG] = { "rax", "rcx", "rdx", "rbx", "rsp", "rbp",
 char* instr[NUMINSTR] = {"halt", "nop", "noop", "rrmovq", "irmovq", "rmmovq", "mrmovq", 
 		"OP", "JUMP", "CONDMOVE", "call", "ret", "pushq", "popq", "iaddq",
         "leave",
-            "align", "pos", "space", "byte", "qword", "char", "string"};
+            "align", "pos", "space", "byte", "qword", "char", "string", "pause"};
 
 
 int instrBytes[NUMINSTR] = {1, 1, 1, 2, 10, 10, 10, 2, 9, 2, 9, 1, 2, 2, 10, 1,
-                            0, 0, 0, 0, 0, 0, 0};
+                            0, 0, 0, 0, 0, 0, 0, 1};
 
 char* opq[NUMOPQ] = {"addq", "subq", "andq", "xorq"};
 
@@ -395,10 +396,19 @@ void pString(op* instr, symbol* sym) {
     }
 }
 
+void pPause(op* instr, symbol *sym) {
+    printf("( ");
+    printf("%" PRIu64"", instr->pos);
+    printf(" . ");
+    printf("240 ");
+    printf(" )\n");
+}
+
 void (*pFuncs[NUMINSTR])() = {pHalt, pNOP, pNOP, pRRMov, pIRMov, pRMMov,
             pMRMov, pOPq, pJMP, pCndMov, pCall, pRet, pPush, pPop, pIAddq,
             pLeave,
             pError, pError, pError, 
-            pBytes, pQuad, pChar, pString}; 
+            pBytes, pQuad, pChar, pString,
+            pPause}; 
 
 

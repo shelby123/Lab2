@@ -1,3 +1,8 @@
+#ifndef INIT_S
+#define INIT_S
+
+
+
 #include <stdio.h>
 #include "state.h"
 #include "util.h"
@@ -157,3 +162,9 @@ void loadStatusAndPC(FILE *file, state *s) {
     removeWhiteSpace(file);
     s->pc = getNumber(file);
 }
+
+
+
+
+
+#endif /* INIT_S */

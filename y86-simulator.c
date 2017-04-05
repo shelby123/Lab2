@@ -7,6 +7,8 @@
 
 #define PRINTRESULT 0
 
+#define COUNTINSTR 0
+
 
 /* 
  * run the simulater with the file to read from as 
@@ -18,7 +20,13 @@ int main(int argc, char** argv ) {
     if(DEBUG)
         printf("Starting the simulator\n");
     char* fileName = argv[FILENAME];
-    runSimulation(fileName);
+    state *s = runSimulation(fileName);
+    if(argc >=3) {
+    	uint64_t memHigh = atoi(argv[FILENAME+1]);
+    	for(int i = 4096; i <= memHigh; i++) {
+	    	printf("%d %d\n", i, (unsigned char)s->memory[i]);
+	    }
+    }
 }
 
 /*
@@ -37,11 +45,16 @@ state* runSimulation(char* fileName) {
     while(s->status == NORMAL) {
     	executeInstruction(s);
     	numInstr++;
+
     }
+
     if(COUNTINSTR) 
     	printf("number of instructions : %"PRIu64"\n", numInstr);
     if(PRINTRESULT) 
     	printRegisters(s);
+
+    if(COUNTINSTR) 
+    	printf("number of instructions : %"PRIu64"\n", numInstr);
 
     fclose(file);
     return s;
@@ -63,9 +76,8 @@ void executeInstruction(state *s) {
 		char copyTo[30];
 		sprintf(copyTo, message, instrCode);
 		warning(copyTo);
-	}
+	}	
 	(*pFuncs[instrCode])(s);
-
 }
 
 
@@ -82,7 +94,10 @@ unsigned char getInstructionCode(state *s) {
 	uint64_t pc = s->pc;
 	unsigned char byte = s->memory[pc];
 	unsigned char mask = 0xF0;	
-	return (byte & mask)>>4;
+	unsigned char res = (byte & mask)>>4;
+	if(res == PAUSE)
+		res = 12;
+	return res;
 }
 
 /*
@@ -783,6 +798,12 @@ void popq(state *s) {
 
 	// put the value from the stack into regA
 	s->registers[registers[REGA]] = value;
+}
+
+
+void pause(state *s) {
+	s->pc++;
+	runPauseRoutine(s);
 }
 
 

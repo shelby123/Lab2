@@ -3,6 +3,7 @@
 #include "tester.h"
 
 #define NUMTESTS 13
+
 #define DEBUGTESTER 0
 
 #define ARRAYLOC 4096
@@ -47,6 +48,8 @@ char* testNames[NUMTESTS] = {"1: irmovq + addq",
 							"10: fib base case 1",
 							"11: fib with n = 2",
 							"12: multiple push/ pop",
+							"11: fib with n = 2"
+							"12: multiple push/ pop"
 							"13: multiple push/ pop"};
 
 
@@ -60,6 +63,15 @@ char* testNames[NUMTESTS] = {"1: irmovq + addq",
 // 	runFibTests();
 // 	// runQuickSortTests();
 // }
+int main() {
+	// for(int testNum = 0; testNum < NUMTESTS; testNum++) {
+	// 	runTest(assemblerFiles[testNum], 
+	// 			expectedFiles[testNum],
+	// 			testNames[testNum]);
+	// }
+	// runFibTests();
+	runQuickSortTests();
+}
 
 #define NUMFIBTESTS 4
 char* fibTestFiles[NUMFIBTESTS] = 
@@ -93,14 +105,49 @@ void runFibTests() {
 }
 
 
-#define NUMQUICKSORTTESTS 4
+#define NUMQUICKSORTTESTS 5
+// char* quickSortTestFiles[NUMQUICKSORTTESTS] = 
+// 	{
+		
+// 		"tests/quickSortTests/qsTest3.txt",
+// 		"tests/quickSortTests/qsTest4.txt",
+// 		"tests/quickSortTests/qsTest5.txt",
+// 		"tests/quickSortTests/qsTest6.txt"
+// #define NUMQUICKSORTTESTS 1
+// char* quickSortTestFiles[NUMQUICKSORTTESTS] = 
+// 	{
+		
+// 		"tests/quickSortTests/qsTest3.txt",
+// 		"tests/quickSortTests/qsTest4.txt",
+// 		"tests/quickSortTests/qsTest5.txt",
+// 		"tests/quickSortTests/qsTest6.txt"
+// 	};
+
+// char* quickSortResultFiles[NUMQUICKSORTTESTS] = 
+// 	{
+		
+// 		"tests/quickSortTests/qsTest3Res.txt",
+// 		"tests/quickSortTests/qsTest4Res.txt",
+// 		"tests/quickSortTests/qsTest5Res.txt",
+// 		"tests/quickSortTests/qsTest6Res.txt"
+// 	};
+
+// int numElems[NUMQUICKSORTTESTS] = 
+// 	{
+// 		4,
+// 		11,
+// 		101,
+// 		1001
+// 	};
+
 char* quickSortTestFiles[NUMQUICKSORTTESTS] = 
 	{
-		
-		"tests/quickSortTests/qsTest3.txt",
-		"tests/quickSortTests/qsTest4.txt",
-		"tests/quickSortTests/qsTest5.txt",
-		"tests/quickSortTests/qsTest6.txt"
+"tests/quickSortTests/qsTest3Res.txt",
+		"tests/quickSortTests/qsTest4Res.txt",
+		"tests/quickSortTests/qsTest5Res.txt",
+		"tests/quickSortTests/qsTest6Res.txt",
+	
+		"tests/quickSortTests/qsTest5Res.txt"		
 	};
 
 char* quickSortResultFiles[NUMQUICKSORTTESTS] = 
@@ -109,7 +156,9 @@ char* quickSortResultFiles[NUMQUICKSORTTESTS] =
 		"tests/quickSortTests/qsTest3Res.txt",
 		"tests/quickSortTests/qsTest4Res.txt",
 		"tests/quickSortTests/qsTest5Res.txt",
-		"tests/quickSortTests/qsTest6Res.txt"
+		"tests/quickSortTests/qsTest6Res.txt",
+	
+		"tests/quickSortTests/qsTest5Res.txt"
 	};
 
 int numElems[NUMQUICKSORTTESTS] = 
@@ -117,7 +166,8 @@ int numElems[NUMQUICKSORTTESTS] =
 		4,
 		11,
 		101,
-		1001
+		1001,
+		101
 	};
 
 void runQuickSortTests() {
@@ -251,22 +301,18 @@ int infoEqual(state *actual, state *expected) {
 
 }
 
-int quickSortArraysEqual(state *expe, state *act, int numElems) {
+int quickSortArraysEqual(state *exp, state *act, int numElems) {
 	uint64_t loc = ARRAYLOC;
 	uint64_t stop = numElems*8 + ARRAYLOC;
-	// printf("\n\n\n%u\n", (unsigned char) act->memory[ARRAYLOC] );
-	// printf("%u\n", (unsigned char) expe->memory[ARRAYLOC] );
+	printf("%u\n", (unsigned char) act->memory[4096] );
+	printf("%u\n", (unsigned char) exp->memory[4096] );
 	for(int i = loc; i < stop; i++) {
-		unsigned char c  = expe->memory[i];
+		unsigned char c  = exp->memory[i];
 		unsigned char c1 = act->memory[i];
-	// 	printf("\n%u\n", (unsigned char) act->memory[i] );
-	// printf("%u\n", (unsigned char) expe->memory[i] );
-	// printf("%u\n", c);
-	// printf("%u\n", c1);
 		if(c != c1) {
 			if(DEBUGTESTER) {
-				printf("\tthe actual memory location %d: %u, expected memory location: %u\n",
-					i,
+				printf("\tthe actual memory location %"PRIu64": %u, expected memory location: %u\n",
+					loc,
 					  c1, 
 					  c);
 			}

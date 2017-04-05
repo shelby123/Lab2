@@ -1,39 +1,4 @@
 (
-
-(irmovq array1 %rdi)
-(irmovq 1 %rsi)
-(call getOffset)
-(mrmovq %rax %rdx)
-(halt)
-
-getOffset
-; array in rdi. index in rsi
-(pushq %r10) ; loop control in r10
-(pushq %r11) ; accumulator in r11
-(pushq %r12) ; 1
-(pushq %r13) ; 8
-(irmovq 1 %r12)
-(irmovq 8 %r13)
-(rrmovq %rsi %r10)
-(rrmovq %rdi %r11)
-(jmp checkIfZero)
-GetOffsetLoop
-(subq %r12 %r10)
-(addq %r13 %r11)
-
-checkIfZero
-(andq %r10 %r10)
-(jg GetOffsetLoop)
-
-; done
-(rrmovq %r11 %rax)
-(popq %r13)
-(popq %r12)
-(popq %r11)
-(popq %r10)
-(ret)
-
-(pos 200)
-array1 
-(qword 1 2)
+( 0 . 240  )
+( 0 . 0  )
 )

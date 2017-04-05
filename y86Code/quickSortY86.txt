@@ -3,7 +3,7 @@
 (irmovq array %rdi)
 (irmovq 0 %rsi)
 ; this immediate must be the length of the array
-(irmovq 1 %rdx)
+(irmovq 10 %rdx)
 (call quicksort)
 (halt)
 
@@ -17,6 +17,7 @@
 ; high index is in rdx
 ; return the result in rax
 quicksort
+;(pause)
 
 ; check if low (in rsi) < high (in rdx)
 ; we will put high into r10, minus low from it, 
