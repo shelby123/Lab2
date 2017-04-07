@@ -7,7 +7,7 @@
 #include "initialState.h"
 
 
-#define PAUSEOPS 3
+#define PAUSEOPS 4
 #define MAXSTRLEN 20
 
 #define CONTINUE 1
@@ -16,7 +16,8 @@
 char* ops[PAUSEOPS] = {
 	"continue",
 	"pReg",
-	"pStack"
+	"pStack", 
+	"pMem"
 };
 
 void runPauseRoutine(state *s);
@@ -45,8 +46,29 @@ unsigned char pStack(state *s) {
 	return CONTINUE;
 }
 
+unsigned char pMem(state *s) {
+	
 
-unsigned char (*pauseFuncs[PAUSEOPS])(state *s)  = {stop, pReg, pStack};
+	uint64_t lower = 0; 
+	uint64_t upper = 0;
+	printf("enter lower bound:\n");
+	scanf("%"PRIu64"", &lower);
+	printf("enter an upper bound\n");
+	scanf("%"PRIu64"", &upper);
+	if( lower > upper ) {
+		printf("lower cannot be larger than upper \n");
+		return pMem(s);
+	}
+	printf("\nShowing mem from locations %"PRIu64" to %"PRIu64"\n", lower, upper);
+	for(uint64_t temp = lower; temp <= upper; temp++) {
+		printf("%"PRIu64" : %d\n", temp, (unsigned char)s->memory[temp]);
+	}
+
+	return CONTINUE;
+}
+
+
+unsigned char (*pauseFuncs[PAUSEOPS])(state *s)  = {stop, pReg, pStack, pMem};
 
 
 
