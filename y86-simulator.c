@@ -26,6 +26,10 @@ int main(int argc, char** argv ) {
     	for(int i = 4096; i <= memHigh; i++) {
 	    	printf("%d %d\n", i, (unsigned char)s->memory[i]);
 	    }
+	    // for(int i = 4096; i <= memHigh; i+=8) {
+	    // 	printf("%d %"PRIu64"\n", i,  getQuadWordLoc(s, i));
+	    // }
+
     }
 }
 
@@ -175,7 +179,7 @@ uint64_t getQuadWordLoc(state *s, uint64_t location) {
  *	SFLAG: set if the highest order bit in res is 1
  *	
  */
-void setCondCodes(state *s, uint64_t val1, uint64_t val2, uint64_t res) {
+void setCondCodes(state *s, uint64_t val1, uint64_t val2, uint64_t res, char func) {
 	uint64_t val1bit = val1 & 0x8000000000000000;
 	uint64_t val2bit = val2 & 0x8000000000000000;
 	uint64_t resbit = res & 0x8000000000000000;
@@ -183,8 +187,27 @@ void setCondCodes(state *s, uint64_t val1, uint64_t val2, uint64_t res) {
 	s->flags[ZFLAG] = res == 0;
 	// set overflow if the two values had the same sign bit
 	// but the operation changed the bit of the result.
-	if((val1bit == val2bit) && (val2bit != resbit))
-		s->flags[OFLAG] = 1;
+	if(func == SUBQ) {
+		// if we're doing neg - pos and we get a positive number, overflow
+		if((val2bit && !val1bit) && !resbit) {
+			s->flags[OFLAG] = 1;
+		} else if( (!val2bit && val1bit) && resbit) {
+			// we did pos - neg and got a negative number
+			s->flags[OFLAG] = 1;
+		} else
+			s->flags[OFLAG] = 0;
+	} else if(func == ADDQ) {
+		if((val2bit && val1bit) && !resbit) {
+			// added two negative numbers, got a positive
+			s->flags[OFLAG] = 1;
+		} else if (((!val1bit) && (!val2bit)) && resbit) {
+			// added two positive numbers and got a negative
+			s->flags[OFLAG] = 1;
+		} else 
+			s->flags[OFLAG] = 0;
+	} else
+		s->flags[OFLAG] = 0;
+
 
 	s->flags[SFLAG] = resbit;
 	if(s->flags[SFLAG]) 
@@ -430,7 +453,7 @@ uint64_t addq(state *s, uint64_t val1, uint64_t val2) {
 uint64_t subq(state *s, uint64_t val1, uint64_t val2){
 	uint64_t res = val2 - val1;
 	if(DEBUG) {
-		printf("subtracting: %" PRIu64 " from : %" PRIu64 ", res: %" PRIu64 "\n",
+		printf("subtracting: %" PRId64 " from : %" PRId64 ", res: %" PRId64 "\n",
 			  val1,   val2, 
 			  res);
 	}
@@ -497,7 +520,7 @@ void opq(state *s) {
 	uint64_t val2 = s->registers[registers[REGB]];
 	uint64_t res =
 		(*opFuncs[functionCode])(s, val1, val2);
-	setCondCodes(s, val1, val2, res);
+	setCondCodes(s, val1, val2, res, functionCode);
 	s->registers[registers[REGB]] = res;
 
 }
@@ -525,7 +548,7 @@ char lessThanEqual(state *s) {
  *	indicate less than zero.
  */
 char lessThan(state *s) {
-	return s->flags[SFLAG];
+	return (s->flags[SFLAG] ^ s->flags[OFLAG]);
 }
 
 /*	
@@ -552,7 +575,7 @@ char notEqual(state *s) {
  *	indicate greater than or qual to zero.
  */
 char greaterThanEqual(state *s) {
-	return greaterThan(s) | equal(s);
+	return !(s->flags[SFLAG]^s->flags[OFLAG]);
 }
 
 /*	
@@ -561,7 +584,7 @@ char greaterThanEqual(state *s) {
  *	indicate greater than zero.
  */
 char greaterThan(state *s) {
-	return !s->flags[SFLAG] & !s->flags[ZFLAG];
+	return !(s->flags[SFLAG]^s->flags[OFLAG]) & !s->flags[ZFLAG];
 }
 
 

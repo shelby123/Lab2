@@ -19,6 +19,9 @@
 #define POPQ 13
 #define PAUSE 15
 
+#define ADDQ 0
+#define SUBQ 1
+
 
 //int instrBytes[NUMINSTR] = {1, 1, 1, 2, 10, 10, 10, 2, 9, 2, 9, 1, 2, 2, 10, 1};
 

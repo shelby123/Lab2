@@ -46,7 +46,7 @@ state* stalloc() {
 
 void printRegisters(state *s) {
 	for(int i = 0; i < NUMREG; i++)  {
-		printf("%s : %"PRIu64"\n", registerNames[i], s->registers[i]);
+		printf("%s : %"PRId64"\n", registerNames[i], s->registers[i]);
 	}
 }
 

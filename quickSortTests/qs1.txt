@@ -3,7 +3,8 @@
 (irmovq array %rdi)
 (irmovq 0 %rsi)
 ; this immediate must be the length of the array
-(irmovq 101 %rdx)
+; this is for the data set with length = 10. 
+(irmovq 10 %rdx)
 (call quicksort)
 (halt)
 
@@ -17,7 +18,6 @@
 ; high index is in rdx
 ; return the result in rax
 quicksort
-;(pause)
 
 ; check if low (in rsi) < high (in rdx)
 ; we will put high into r10, minus low from it, 
@@ -27,6 +27,7 @@ quicksort
 (rrmovq %rdx %r10)
 (subq %rsi %r10)
 (popq %r10) ; popping won't change the CC
+
 (jle done)
 
 ; call partition.
@@ -40,8 +41,10 @@ quicksort
 (popq %rsi)
 (popq %rdi)
 
+
 ; result of partition-- partition index-- is in rax. 
 ; let's move it to r10 and save it. 
+(pushq %r10)
 (rrmovq %rax %r10)
 
 
@@ -81,9 +84,16 @@ quicksort
 (popq %rdx)
 (popq %rsi)
 (popq %rdi)
-
+(popq %r10)
 done
 (ret)
+
+
+
+
+
+
+
 
 
 
@@ -158,6 +168,7 @@ loop
 (popq %r12)
 (jl endIf)
 
+
 ; now we're inside of the if statement. 
 ; rax is holding memory location array[j]
 
@@ -203,6 +214,7 @@ loop
 (popq %rdi) 
 
 endIf
+
 
 (popq %r11) ; restore the old value of r11 
 
@@ -296,6 +308,9 @@ endLoop
 ; ****************** GET OFFSET ****************************
 getOffset
 ; array in rdi. index in rsi
+(andq %rsi %rsi)
+
+
 (pushq %r10) ; loop control in r10
 (pushq %r11) ; accumulator in r11
 (pushq %r12) ; 1
@@ -354,107 +369,17 @@ swap
 (pos 4096)
 array
 (qword 
-#x64
-#x66acd882ad3fd756
-#xc97c07028beb324d
-#xc275dc6ac794bb9
-#x7661c42c8816332
-#xb57a71aaf7a8638c
-#x645800ed695426e4
-#xf6540060b1e5a365
-#xe7692342b1d85bef
-#xac8d40783365b2e0
-#xd6ac6eb76d3baa34
-#x883ff809b0e6e5ef
-#x1ee2dab49aced211
-#x993e6b698e751cee
-#x617c99eb235b3b4a
-#x9da8035db501112a
-#x8b4f8505059bd1d6
-#x440dfae8270e1a43
-#x78fbfb467088065a
-#x55c4376f0da07408
-#x8b1ffcda5be64060
-#xfff4b20604727abe
-#xb847670049e1eab
-#x86e8facf5bed4f25
-#xf40bb96a57922305
-#x3d3df3222eda52e2
-#x63375d9d7b6ec534
-#x942a01ea81dee3cd
-#xb6825dd141584e68
-#x3173ea2f425e2ead
-#xd4198ca28687f2da
-#x40a1f020a0d195a6
-#x263e7c0ccd35895e
-#x5dab1c92f4cf7a1a
-#xebaab216e94883ba
-#x3be0e0794f26b45f
-#xaeb2fd319a06a782
-#x23bf44c91ff76912
-#x14d18410ce3224e8
-#x3a34969062393300
-#x43a7fa863ac43cbd
-#xf8f767ad141801d7
-#xcba6937cb6a68a60
-#x51401d96aa477acb
-#xab52b9a84b73f945
-#x1820201899dca3e3
-#xfcd1c3a827fb8d6
-#x3118fd1f8c3704e9
-#x3e782931b90574ce
-#x3da4b2ac21057773
-#x74b086881a4c4244
-#x125028362cf768d8
-#xad5155cce7298efd
-#xb0fd9269a222f3cf
-#x2305453271255d30
-#xd9127c330d5c4fe
-#x6d05d37f890dee9c
-#x31bbda3a53f27d9c
-#x748434b1ae4a8864
-#x936be9a760b857a1
-#x943fcebe8c2ef035
-#x8bbcf97e8a198949
-#x607280a6bd6c53ba
-#x6f248e701395d97d
-#x8da4b2bbe3b695c1
-#x5289a8932a24ecca
-#x84e66a14af89395f
-#xd6f507615c7e3f0c
-#xe199db76c318f83c
-#x5dcff7a8968d786b
-#x35e1534eda38bdf2
-#xbd209e67414f3c3
-#xb3d5fad50c40ddc5
-#xd53e537b9d587141
-#xd78ef8eb1cc29539
-#xf352006fdd963288
-#x94e24711ee2c7f6
-#xeacde26d137159c4
-#xfe3a740af34061d3
-#x8f6036b65b9e86b0
-#x896a4216f3880b97
-#x5eee8ae6728cb6f2
-#x9f0a3c318400f0d6
-#x6f19dd067d291466
-#x59001fafc3a95226
-#x4ef75acc7a3bbc1a
-#xb4e3c780ee0ff35
-#x67637d3d215c4f86
-#xe4060802835c5711
-#xfc89367a3ff2a489
-#xf0f342977af2701f
-#x25e486a3eafa93ab
-#x90ee037b96cd857
-#x298dc54dba450b0a
-#x9cdd6818c3e7024c
-#x9fad49951e636601
-#xee2e0251513b1b40
-#xe0b8af306c4f9bf8
-#x5f61dca4aa6249cc
-#xc95c3d863fd680cf
-#x8607fff0cb406bae
+#xc8f4b5e2d353c991
+#xe60836acca95fd46
+#xff74b71d145f52a7
+#xa
+#x84ca711854d5e0
+#x8fc9d92b4080208
+#x2041a3a863998970
+#x2376df3fc482fccf
+#x397cfd5619d567cd
+#x6fe548562b9e2634
+#x715b24d95aeee74c
 )
 
 

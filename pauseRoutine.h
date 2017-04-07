@@ -7,7 +7,7 @@
 #include "initialState.h"
 
 
-#define PAUSEOPS 4
+#define PAUSEOPS 6
 #define MAXSTRLEN 20
 
 #define CONTINUE 1
@@ -17,7 +17,9 @@ char* ops[PAUSEOPS] = {
 	"continue",
 	"pReg",
 	"pStack", 
-	"pMem"
+	"pMem",
+	"reg",
+	"conditions"
 };
 
 void runPauseRoutine(state *s);
@@ -33,6 +35,7 @@ unsigned char stop(state *s) {
 
 unsigned char pReg(state *s) {
 	printRegisters(s);
+	printf("pc: %"PRIu64"\n", s->pc);
 	return CONTINUE;
 }
 
@@ -67,10 +70,31 @@ unsigned char pMem(state *s) {
 	return CONTINUE;
 }
 
+unsigned char reg(state *s) {
+	int reg = 0;
+	printf("register number\n");
+	scanf("%d", &reg);
+	printf("\nreg value: %"PRIu64"\n", s->registers[reg]);
+	return CONTINUE;
+}
 
-unsigned char (*pauseFuncs[PAUSEOPS])(state *s)  = {stop, pReg, pStack, pMem};
+unsigned char pCond(state *s) {
+	printf("ZFlag %"PRIu64"\n", s->flags[ZFLAG]);
+	printf("OFlag %"PRIu64"\n", s->flags[OFLAG]);
+	printf("SFlag %"PRIu64"\n", s->flags[SFLAG]);
+
+	return CONTINUE;
+}
+
+unsigned char (*pauseFuncs[PAUSEOPS])(state *s)  = {stop, pReg, pStack, pMem,
+		reg, pCond};
 
 
 
 
 #endif /* PAUSE_H */
+
+
+
+
+

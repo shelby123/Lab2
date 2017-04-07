@@ -1,0 +1,1372 @@
+(
+; wrapper to call the quick sort algo
+(irmovq array %rdi)
+(irmovq 0 %rsi)
+; this immediate must be the length of the array
+(irmovq 1000 %rdx)
+(call quicksort)
+(halt)
+
+
+
+
+
+; ************ QUICKSORT *****************
+; array is in rdi
+; low index is in rsi
+; high index is in rdx
+; return the result in rax
+quicksort
+
+; check if low (in rsi) < high (in rdx)
+; we will put high into r10, minus low from it, 
+; and see if the result is greater than zero.
+; go to done if low >= high or high-low <= 0
+(pushq %r10)
+(rrmovq %rdx %r10)
+(subq %rsi %r10)
+(popq %r10) ; popping won't change the CC
+;(pause)
+(jle done)
+
+; call partition.
+; array, low, high are in the right places. 
+; but let's save them on the stack just in case. 
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(call partition)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+;(pause)
+
+; result of partition-- partition index-- is in rax. 
+; let's move it to r10 and save it. 
+(pushq %r10)
+(rrmovq %rax %r10)
+
+
+; call quicksort the first time. 
+; ( array (in rdi), low (in rsi), pi (in r10) - 1 )
+; so we just need to decrement pi (r10), and move
+; it into rdx
+; save all the values into the stack
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r10)
+(pushq %r11)
+(irmovq 1 %r11)
+(subq %r11 %r10) ; decrement pi by 1
+(rrmovq %r10 %rdx) ; move pi into the 3rd argument
+(call quicksort)
+(popq %r11)
+(popq %r10)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+
+; call quicksort the second time. 
+; ( array (in rdi), pi (in r10) + 1 , high (in rdx))
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r10)
+(pushq %r11)
+(irmovq 1 %r11)
+(addq %r11 %r10) ; increment pi by 1
+(rrmovq %r10 %rsi) ; move pi into the 2nd argument
+(call quicksort)
+(popq %r11)
+(popq %r10)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+(popq %r10)
+done
+(ret)
+
+
+
+
+
+
+
+
+
+
+
+
+; ************ PARTITION *****************
+; array is in rdi
+; low index is in rsi
+; high index is in rdx
+; return the result in rax
+partition
+
+(pushq %r14) ; need this as an auxilary storage 
+; store the pivot into r8. 
+(pushq %r8)
+; need to get array[high] (rdi + rdx*8)
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(rrmovq %rdx %rsi)
+(call getOffset)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; the memory location (rdi + rdx*8) is in rax. 
+(mrmovq %rax %r8)
+
+
+; store i (low - 1) in r9
+(pushq %r9)
+(pushq %r10) ; temporarily use r10 as incr var
+(irmovq 1 %r10)
+(rrmovq %rsi %r9)
+(subq %r10 %r9)
+(popq %r10) ; restore the old value of r10
+
+; LOOP
+; store j in r10
+(pushq %r10)
+(rrmovq %rsi %r10)
+(jmp checkCondition)
+
+; loop body
+loop
+
+; check if array[j] <= pivot
+; store array[j] in r11
+; array + j * 8  or rdi + r10 * 8. 
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r10)
+(rrmovq %r10 %rsi)
+(call getOffset)
+(popq %r10)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; memory location array + j * 8 is in rax. 
+; store array[j] value in r11
+(pushq %r11)
+(mrmovq %rax %r11)
+
+; now we have array[j] in r11, and pivot in r8.
+; we need to check if r11 <= r8. 
+; put r8 in r12, and do r12 - r11, check if 
+; 0 <= r12 - r11 (jump to the end of the if 
+; statement if 0 > r12 - r11)
+(pushq %r12)
+(rrmovq %r8 %r12)
+(subq %r11 %r12)
+(popq %r12)
+(jl endIf)
+;(pause)
+
+; now we're inside of the if statement. 
+; rax is holding memory location array[j]
+
+; need to increment i. i is in r9
+(pushq %r12)
+(irmovq 1 %r12)
+(addq %r12 %r9)
+(popq %r12)
+
+; call swap with array[i] and array[j]
+; array[i] needs to go into rdi
+; array[j] needs to go into rsi
+
+; temporarily store rax (array[j]) on the stack. 
+(pushq %rax)
+
+; get array[i]. i is in r9. array is in rdi
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r9)
+(rrmovq %r9 %rsi)
+(call getOffset)
+(popq %r9)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; array[i] is in rax. We need it to be in rdi. 
+
+; array[j] is on the stack. We need this to be 
+; popped into rsi. 
+; array[i] is in rax. we need this to be in rdi
+(popq %r14) ; array[j] is in r14
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(rrmovq %rax %rdi)
+(rrmovq %r14 %rsi)
+;(popq %rsi)
+(call swap)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi) 
+
+endIf
+
+
+(popq %r11) ; restore the old value of r11 
+
+; increment j. J is in r10. 
+(pushq %r11) 
+(irmovq 1 %r11)
+(addq %r11 %r10)
+(popq %r11)
+
+; check if j < high 
+; j is in r10. high is in rdx
+; check if 0 < high - j.
+; put high in r11, subtract j 
+; and jump back into the loop if greater than zero 
+checkCondition
+(pushq %r11) 
+(rrmovq %rdx %r11)
+(subq %r10 %r11)
+(popq %r11) ; popping shouldn't change the CC
+(jg loop)
+
+endLoop
+
+; at the end of the loop. 
+; need i + 1
+; i is in r9. 
+(pushq %r12)
+(irmovq 1 %r12)
+(addq %r12 %r9)
+(popq %r12)
+
+; i + 1 is in r9
+; need array[i+1] in rdi
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(pushq %r9)
+(rrmovq %r9 %rsi)
+(call getOffset)
+(popq %r9)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; array + (i+1)*8 is in rax
+
+; temporarily store array[i+1] on the stack 
+(pushq %rax)
+
+; need array[high] in rsi
+; high is in rdx
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(rrmovq %rdx %rsi)
+(call getOffset)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi)
+; now array[high] is in rax. 
+
+; array[i+1] is on the stack. We need this to be 
+; popped into rsi. 
+; array[high] is in rax. we need this to be in rdi
+(popq %r14) ; array[i+1] is now in r14.
+(pushq %rdi)
+(pushq %rsi)
+(pushq %rdx)
+(rrmovq %rax %rdi)
+(rrmovq %r14 %rsi)
+;(popq %rsi)
+(call swap)
+(popq %rdx)
+(popq %rsi)
+(popq %rdi) 
+
+; now we just need to return i + 1 in rax
+; i + 1 is in r9
+(rrmovq %r9 %rax)
+
+(popq %r10)
+(popq %r9)
+(popq %r8)
+(popq %r14)
+
+(ret)
+
+
+
+
+
+; ****************** GET OFFSET ****************************
+getOffset
+; array in rdi. index in rsi
+(andq %rsi %rsi)
+;(pause)
+
+(pushq %r10) ; loop control in r10
+(pushq %r11) ; accumulator in r11
+(pushq %r12) ; 1
+(pushq %r13) ; 8
+(irmovq 1 %r12)
+(irmovq 8 %r13)
+(rrmovq %rsi %r10)
+(rrmovq %rdi %r11)
+(jmp checkIfZero)
+GetOffsetLoop
+(subq %r12 %r10)
+(addq %r13 %r11)
+
+checkIfZero
+(andq %r10 %r10)
+(jg GetOffsetLoop)
+;(pause)
+; done
+(rrmovq %r11 %rax)
+(popq %r13)
+(popq %r12)
+(popq %r11)
+(popq %r10)
+(ret)
+
+
+
+; ********************* SWAP *******************************
+; array[i] is in rdi
+; array[j] is in rsi
+swap
+
+; store the value array[i] in r10
+(pushq %r10)
+(mrmovq %rdi %r10)
+
+; store the value array[j] in r11
+(pushq %r11)
+(mrmovq %rsi %r11)
+
+; set array[i] to r11
+(rmmovq %r11 %rdi)
+
+; set array[j] to r10
+(rmmovq %r10 %rsi)
+
+(popq %r11)
+(popq %r10)
+
+(ret)
+
+
+
+
+; ****************** ARRAY *******************
+(pos 4096)
+array
+(qword 
+#x3e8
+#x6c4cb77803d812ba
+#xaab07fce348afb3e
+#xf47117085c17075b
+#xbcfffd216dd48dce
+#x1fea3adbf11d976a
+#x35267c37460d6267
+#x6d021e4fabfece5b
+#xc5d3f996156c877d
+#x1763ec6473a09c38
+#xbf25cdd7935573c7
+#xf5d82ab21932eda0
+#x6360506e8d1de6a1
+#xc841e5b32c5c95bc
+#x82d457112ff4c1c5
+#xeca5c6e4c9f3d123
+#xc2274259e3b37cc5
+#xcfd0c75f513251ca
+#xf3317b0c79e9e6dc
+#xc9f2fd12aebf3a04
+#x50789a553d6de343
+#xef8297ee7b9cf051
+#x71f42da4f8f645ef
+#x36c5b5aa0d2e320c
+#xf249e52dc0afdec6
+#xdadf44b675732203
+#x5db9806987e28601
+#x852e16a4b2984d18
+#x56542bf17db1c7a5
+#xee4f32ff739330ee
+#xe53ce66ce19d260
+#x2fcd77d2d57317a2
+#x2190056975e51b98
+#x4d467d23f802abcb
+#x93d2cd1258ef24d3
+#xc2a73d16fa33f3bd
+#x48c28690e21d1721
+#xa68217e1fbf01c48
+#x59f6a1f92a6cfa53
+#x84c5ee6dad10c0a0
+#xa80dbd11d05a3a27
+#xe2d27d0c56a29bc8
+#x892cb10650f198e2
+#x873252f3bd3afa32
+#xa0ec937bcff19d76
+#x3a193ae1101061fd
+#xb8403dcc34aae006
+#x22aff90c8e50e45c
+#xfbb35b7986424a53
+#x928d8e7b75837bbb
+#x3b8e689720f27297
+#xc8f18b9c9ed02da2
+#x41889a96fb61015a
+#x623b1819713f9ed7
+#x9d46e760f2cc3c0e
+#x4730b3bc88cba0ea
+#x519a5fb3fa8f2a
+#xbad593102b477fb6
+#x31cbfd826c9d6fa1
+#x9ce7c46ff10bfa22
+#x744d17aa7200a765
+#x7ac1c2c886b58d6d
+#x94ff6d435a420099
+#xf3b76dc23c6becdc
+#x950c6f7b0eff587e
+#x868cf129fee5515c
+#xdf349ada3ffe8b31
+#x794ee32f0b81e8a7
+#x9c7a5ae02ed2b843
+#x67b0f490338aab45
+#x9800b26070960100
+#xe597b0ed5346cadb
+#x1ea5e01031d7d6c7
+#xa860204ab53652f8
+#x4a3aa64bc8335175
+#x245b9254d957d8f3
+#x95deb20d2f6e7bfa
+#x25f25d0b4db6152f
+#x3edc8cc7a9a2289b
+#x3dbf69874c7fd672
+#xa8552276c4acea81
+#xdf749f0733feb0da
+#xaa9a8eb50f61f186
+#xb8369a2811debce0
+#xc0d0ba0a11826e4e
+#xbdb843223a0ae5bc
+#xb916048eed39f7f7
+#x598e7bc554828557
+#x257c257f29c044ae
+#xfa1db20b05165acb
+#x11dc4c9a12399406
+#x3b66177548d894ac
+#xbb635ab5f4458925
+#x3a4261ae2f578626
+#xbdd931c798d659b1
+#x745835efe2be82b4
+#xe3759c7395008bae
+#x9c0b2ebe364b02ca
+#xc65144a34688772c
+#x8587e6b889172b75
+#xa6701a79741c1087
+#xda46beb0ed93f449
+#x2513763534b5e928
+#x92bf2d0129a642ab
+#xe57e0c3dc326ca12
+#xda536431b38387ba
+#x38c2dd055f131766
+#x4f2c3632a33933b3
+#x737adf16d93deda3
+#x36f12d21057d5f5b
+#xa4fd31e2638d0c83
+#xa6e89fd85d3c52d
+#x333d6ed98a1165cf
+#x877ddd0ab7c8f703
+#xabc537dfd788a430
+#x51c7ed0be22cab0c
+#x7508521436c377e3
+#xd7c989863a1715a6
+#x6ae7958a861b0fab
+#x62903fa6873ef63f
+#xc8fb2c55f3f20ab6
+#xdc24cc55b0c553d9
+#xb214d98b8ee9ab21
+#x448fae2db6b6d737
+#x68570f69ffab1b68
+#x620d1e715706b7a9
+#x44c1ac4d1e9c3b67
+#x76f4b06d1e149cf0
+#x478d345120a43c55
+#x623b34c245183393
+#xbc82920ae7d4cb9
+#x8946567d018f466c
+#x41c5c55f33620a0c
+#x9ab40b77f8969d69
+#x5da6f6bf8dddab6f
+#xfeda19490e8bb298
+#x5c2104586928a499
+#x8f7027d3770092a2
+#xc2a4b3d5717e665d
+#x70e768dba5fa6a0b
+#xc645623293e9caea
+#x1bc1eb781d5fcd6d
+#x4a812cfe6b05e92c
+#x8882b63ea79e23cd
+#xcf589cfc01861e5d
+#x76d79ef7547f0eb0
+#x542a9b28f662db76
+#xc857b90e3cf4df60
+#xf732b82193ee4979
+#x9192bd6153ccce75
+#x90ba445d0d704bd
+#x4b572ff32e157457
+#x30db7d907e163b58
+#x34ea68e260a0f53e
+#xb1009ccaf8ae1c8
+#x2466f34bb9bbc303
+#xceef7a4281d3a750
+#x5cdce31bb04f54a3
+#x54daa9f0129aa5fc
+#x211a82b9973b35e8
+#x80a45ea06b71b833
+#x4b05c49acdf43756
+#xe69dc2abeedadcbf
+#x6ccd1c6210c65f10
+#x477fda87b572e3fa
+#x94f936d97a39ee94
+#xbd89291b58004b40
+#x3444b48c35024996
+#x87bb6645e93592e7
+#xeeb4cc8f5277af63
+#x52f5ba95ec430a5f
+#x870cdfd2a2d8895
+#x875b0de1b640b691
+#x937dc00854dc5e33
+#x4a62d0bd2c3917c3
+#xfce515f5545f5392
+#x7dee4057d009c37d
+#x61115d1a89b50543
+#xb4a47c653bb3603a
+#x65b2df0549a0ceef
+#x2ed7fbf991de926d
+#x4629bf61963c0ef8
+#x983c8085bfa14c2
+#x65bf41f76bb71f56
+#x2ab1591808444ce7
+#x7cabf28b10dae605
+#x5d8b5142814d78ba
+#xee206eeec6baf9fb
+#x57ead2e95dd95748
+#x4a0893e663f07926
+#xd1cbfea315804de0
+#xf4be2f652251fcb
+#xb8ca7d406a1b75ad
+#x761dc7f55fc431d1
+#x47700145c3535bce
+#x1969b4e9955fa25c
+#xbeeb6a9d1be8169c
+#x21ddfc450b43bc5e
+#xef406efab6df8e6f
+#xc9be4f1ee45ca18a
+#x3a110f229d42ba77
+#xf46a0f6eaa2b13f8
+#x726e35df0f95029c
+#x1bd56c1e2c4d7eab
+#x5dc5aefdf2adca82
+#x416398411f9f938c
+#x37a2bb87116b88fe
+#x14d3f1a77af2a8b5
+#xb3fa604fa0e907d
+#xe3904560c9515f08
+#xed9ba7455762c466
+#x1d70541d45677844
+#x413b94bae6e8c74d
+#x8996d778f3d858f4
+#x44055e9b2a6b5413
+#xdbf0c7b744586238
+#x5a32f1d8a12bd045
+#x6234eae6907f3a22
+#xaf810652764c7978
+#xd09d2ea7b753e03a
+#x35e206e3dbd36ce5
+#xb6d0b546a658866
+#x68919640e9bec39e
+#x1ee819f9889ddfa9
+#x6b08b159aff2c607
+#xa98282e72515a8b5
+#x38d460653ff7fbc5
+#x92dcff8904893edf
+#x35f827530400cad
+#x66f18f84629e3af7
+#x45be2e16cf36d5b9
+#x38f6a1d96ebf22a1
+#x973191f121fad08b
+#xab3f2d36828b4d6d
+#xb7f9d8547fd8fa4a
+#xb71f4e193349e26e
+#x4d550b0d58a13bd0
+#xdd7d2e442fe83ed6
+#xd7437e8ceb26b116
+#x8443b678cb478916
+#x966f4133066a23eb
+#xc2200b8fde15144f
+#xf5cdf41dbf0233b2
+#x1b145854822d5dc6
+#xf09c2d482327c3cd
+#x3f811adf9de2d728
+#x5288045ab8d801bf
+#x9c2c22d17decf86e
+#x5e9f798006f3b81c
+#xedfb3b3d868405d2
+#x25f294c5578325b7
+#xe7595a1055acfc89
+#xc2e49fd43243c7d8
+#x1e84a318d699e50e
+#xf6e4016c2bc1dae4
+#xbe68867d018d5a8
+#x8537c9d0eb08499a
+#x62abc2da0b56612d
+#x5f546c9c70f69a87
+#xbf2c1fcc627591b6
+#x1f0acef9ad54ebee
+#xa1eaa5eacd83fa16
+#xc9e90113e2e61b07
+#x8baaa88044b67f75
+#x8a73e6dd0a601ebd
+#x7de3e697e08b1451
+#x4fc9132bae43df45
+#x65a32d72575f9c03
+#x760f8e581149554e
+#xaa12fe8571957c85
+#xe151bcbc89c4fa5e
+#x2112a3253cf9e67f
+#x7bba989694a7233f
+#x916e6977f969f9c3
+#x6857e86586000236
+#xe731ee4ffb23dad
+#x808af6b4500c3034
+#xecd223c236cd1ffa
+#x202a4fb186450361
+#xbe3a6c99cb32c715
+#xbd9d4d9adf737ed5
+#x5c23c3c40270473b
+#x56f4347765ed99ea
+#x4265785cb870d61e
+#x490ee4ed73df5671
+#xb3f39839641fb226
+#xe718bd82dc4e3063
+#x800c170b89275b6e
+#xf8cb2f26453245ae
+#x143de1096b8be9cc
+#xe02938f40e2fe525
+#x551901355e1a9523
+#x57a7fd60eb164ba2
+#x2a5c0b48e087f4cd
+#x7d70a637a0a5939
+#x8ce0e7050c40ea46
+#x3c839a6a8f966b6d
+#x93f36dfca06dc871
+#xcdb56b5d5a108f47
+#x60d1ce4fad7f9537
+#x46e199c6f4308f5a
+#xda02394cf3abd195
+#xb9e99cbf19bfdbc1
+#xf2170f757f0f59b6
+#x6ee15b2df7153450
+#xd89d432082b5a600
+#xc26f4cc4d581831a
+#xcb36e71cae2327c3
+#xecd8e10ab38be033
+#x366c5e56baa03352
+#x197fef5fd9435493
+#x123a80ee83b91290
+#xee0e1088a83ee6a6
+#x15146b0d9f374860
+#x31b7ba9e626b2ce5
+#xb4f1656377e80a18
+#xdad65cfdbd74e72f
+#x1a5ea592925d53e0
+#x54f77b83707847f1
+#x8346c6bbfc1c2f41
+#xe9072aeb641f319
+#xc14a47f493d922d8
+#xdc923063007afeff
+#xbe9dfbe227620789
+#x9db466394324998f
+#x37cf8e23e0ea52af
+#x70786fa862de014a
+#x83d4c93f28bcffa8
+#xa1a73fd1cde922b4
+#xa1eefd754ba92201
+#x941fa14a57fe98c9
+#x360df9297d9cfdd9
+#xb6b2d5aae24c4c9
+#xd7ba68381ab8b559
+#x5fc7d75060096b27
+#xd8eed6d943e83916
+#x72c59c05004df149
+#x59442aed4da13045
+#xc975775614d0dc8c
+#xfaa1058c8c3cc1c
+#x9055d4a2638dae3a
+#x6ed7f8afeb9e9480
+#xae1d6f76d0f8c377
+#x6f0609ac62b84e82
+#x7ae32339d03b209c
+#xad0f1918f9b76582
+#x968f51275f7d92ac
+#x2fda3177de29c4ef
+#x75da828c0bf92772
+#x928b750af18cfa8f
+#x3576a613d238042d
+#x2df840cdf9e37eba
+#x9542e1885cc48e8a
+#x301513f97cd2ed13
+#xa13edc9fcf4cd8d4
+#x74f1f5833ec3f6ee
+#xd94243ecd68f74d0
+#x3628c597b7ec148c
+#x1d7b1873aa31517d
+#x6a9021c4a208529
+#x5e9b3095aa82b0ae
+#x6eb5cf83819f6a7d
+#x43ad93d49962da99
+#xd5a29e31384c42e1
+#x846dfae976aea97f
+#xe7fed60127d98259
+#x48e8bce786071eed
+#xf631ed84a9cffd0
+#x6c69a8175a1d4f58
+#x8a7cb5dc8bb79241
+#x89d28c0c8d044c11
+#x2aed417d4e9113c1
+#xfe9c5086f2489b75
+#xa4fa646f118cfebc
+#xc07c5d01497f8e16
+#xd4d4dba6ab7d0752
+#x6f622fe2769fa887
+#x2b206356d78f31d
+#x8327532e7ee561ee
+#x5e7ed89ed32db660
+#x3dd9f191ea9d468b
+#x812e0fef94b34b55
+#x8f6e8bf56739550d
+#x385ea2fa3e011e48
+#x63d161eaf05960be
+#x35e37ce0d88acf3e
+#xff941ea3ec169f86
+#x693cb04b1af08ed0
+#x88494a87999afffa
+#xa004a706e62716cd
+#xbd7c826d0b19e42c
+#x366dde33ced478c2
+#x96bc0f5f8279671
+#x11a96ee8da39124c
+#xa75099d5a12c4352
+#xf08958c07dd86b83
+#x9659c342769d967a
+#x216f647a4809f4fb
+#x7bbdf17a20eaf73
+#x63c3ef796f9d868a
+#xb3c233d0a8cadbeb
+#xde6b39dbd255cb95
+#xd98d629b8c2cc784
+#x5f297b6a73e283d1
+#xd796674cbd1793d1
+#xf30632c6f6275de0
+#xe989e3296a55b9bf
+#xdc9ce8f6ab0a8b68
+#x8d0821354623efa0
+#x4c0084d7d4cd4b7b
+#xf7810b02149f0231
+#x481dc268ddf1da83
+#x93329f13d3078e92
+#xa56c15e72233146d
+#xd33035b6ab367b0f
+#xcb4e63e0a939a78e
+#x57c09192874d478c
+#x9852cbfbf29ea61f
+#x8342776bfd196bcd
+#xd0c058f345a4ea6d
+#x5396eba39a3e1dcf
+#xb3811db1f795e2b3
+#x1c86d80716126a02
+#xe23ae8a3e81be0e
+#xead77647bc2ea046
+#x77ffb6f8ed12636b
+#x9fe70b230742635e
+#x57c2a283ca075c2b
+#x2f5ccd80d7694c51
+#x7230038f2b2d96bd
+#x68f87a5116f37eba
+#x573402710a33df49
+#x85671a771a248b65
+#x3a096e38abc417f
+#x49d5dc7d65b617b5
+#x73f7bb122b9ccba6
+#x78055feddfd516f9
+#x5c2bcf65cb1655ba
+#x77dc6fd505f1f0d8
+#x2889741a4f56ff33
+#xabb450464d9853ef
+#xeae4d6ebc785b185
+#x53109ec7afdfa93b
+#x11a19bc6409b40b8
+#xf30381b3c7addd81
+#x8535b54102b2338b
+#x39f14e20fa144e55
+#x5dd92b61388b3df3
+#x68b6a2752f98f0fd
+#xe3b4e0f50780d3f5
+#x1eec0630e4f0a2ee
+#xd7f14d3bb994f761
+#x7b7af64b7d531c91
+#xe5ca56a8b11eb126
+#x4451e7b33454711
+#x2b414c1febfffc23
+#xf489282928169700
+#xe88e2eb91c76a135
+#x179b666418a12d39
+#x5185684e502cdcd7
+#x7cc692d1d9e9ff5b
+#xa90ed332cf4f774a
+#xe1c2de11baf0ba0b
+#xd15b347c21776921
+#x5bdee278e73429c8
+#x8ae5eacc23885530
+#x1c0155e0657243ad
+#x59234bf5950c0181
+#xd6e205a86ff92858
+#xe9bc728d63d291c7
+#x8dab407e0443248e
+#xdbe16e5309b5cb2a
+#x98d3cbd870bcd448
+#x381bc61fb25c6aa5
+#xa8a22793dd505793
+#x898d51c4cf5c17bb
+#x3bcd9a6d0a8db0c0
+#x101e8039c3c5e4f9
+#xcf88a8b34e5818d2
+#x7932872f020fa770
+#x76e3fbe2ff3e35e6
+#x610d25e5c9826b04
+#x248fa9e874215ec5
+#x449826dc0168f495
+#x114a7cfae87f46d1
+#x15c20a02006ab91
+#x94fec5ecbfe6b7bc
+#x9dcbdfb6253877d
+#xa2814c7df337488b
+#x6cde10a7fb19a190
+#xb4fa6c899d910738
+#x6b7c97b262b58f1e
+#x75c82a004af82e6a
+#xabded0fefad13d4c
+#x61c3c5fb1b7679b6
+#x807311f2260e060f
+#x83fa6e3a2aba4ee7
+#x3e4d9adc7b0e97ec
+#xb1e367388f3fa77a
+#xd0b30503815480fe
+#x840173ee9f95ea60
+#x5138fec132eeaa03
+#xe598a9d2cbc19a15
+#x96eaa481fb3c6556
+#x97be4ab094f4f009
+#x10e18a6ca65f139e
+#xe2c17da662548a78
+#xcb34393a4559a58
+#xc588111e1355137f
+#x9e951250b8f2d325
+#x6fa111fb28f3f2a7
+#x1c6fdcb3a50e26ff
+#xd88ceff22edcd6fe
+#x8e8cd88a31694d87
+#x89c8325ff28f47f1
+#x43683de00d4d299
+#x465715c91721ea84
+#x8d2b24fcd66ec57d
+#xc7c7881dc7d86114
+#xa768c6b39f864f2f
+#x397cc39af302f10f
+#x2e18795b6500a1ab
+#x51aa01c999d0c730
+#xd9d51bc7df0a3690
+#x1336a32c47bacfed
+#x78c7b8e38e36e694
+#xb5458fce68363d6
+#x2f092a5f6748640e
+#x4fbe5b804a3de636
+#x902ed7ae5b1da9ad
+#x5e5cce774edd8622
+#xf51d235fe05e1f14
+#x7bf541804ad2a4d0
+#x492d71dd1cb7aeca
+#x64846d5b85b1f038
+#xb8bf673f47574a09
+#x88a84f68f64e025b
+#xe0915b97ae2880bf
+#xd3c774794c912974
+#x70c6d2ad9742ea6d
+#xa6636a9b66718ac3
+#xbfab3feca25d7c8d
+#x4731240d0e9dccb0
+#x9a16bdac0e14566c
+#x30ff6559f88cdbdf
+#xf743cbda467e939f
+#xfb12b7fdacfde114
+#xe071334060bc295e
+#x7401e3c4c8dc3e75
+#xedd8f4ac66db6813
+#x9066c83bc8adb2ac
+#x6d2475efc6cd24a2
+#xe65189447093cb02
+#xc732eb40e56d3cce
+#xc312c9d32bd282a6
+#xb31a8309ac5fd29f
+#x4ad250b0ca8f5396
+#x70312224970a078e
+#x6248585d4bacae43
+#x741beac9efeff94e
+#xf9df4b440c4688df
+#xa89e964c6f28db42
+#x6a6202b78e837569
+#x5511506fe1489329
+#x1284d48588cd726f
+#x22107cc8af8a5bfb
+#xff56016a5b7c9d7b
+#xfcdf4cf29ddc6f59
+#x7c81fb02694a3829
+#x4bd33f222b444a8f
+#xc2f8d01dfa9576e9
+#x3f28f380731c26a3
+#xd9ed4bb4f3e00c54
+#x8c60ffd74b8d14b2
+#x6ca94e9c01e1c1f5
+#xd75071e7bcd69233
+#x3e5f4b9505feaa85
+#x213005273748d797
+#x99f6ef8f30126202
+#x52d476c35d57ed17
+#xca83c1e19bbf19b5
+#x19c1bde4404d017d
+#x5552be0d2a328530
+#x33b8f4d17c9e94a4
+#xa428f510f6e4d2af
+#xbc7367da7e35e24
+#x7a16de1ea7e574f4
+#x3b9dbbd26f9d6de1
+#x64af231aa2cd0c2f
+#xd012b3b756d76c9
+#x2795efed02cf12e3
+#x2093dc923025c705
+#x1190deb6ba804d8c
+#xb0531c6cdf7d34fc
+#xa3a13d7402d89f7a
+#x17435af3c033b98a
+#x55693830d50561a7
+#xf83c3bb0c76a9c6d
+#x89b128081fdd5f33
+#xc278f13e7c6bf8f0
+#x4884a1c560954aab
+#xb43778c03696b20d
+#xa6a1f7784da597d3
+#x9e7d8b2702caaf0f
+#x8a42029f0ce5075c
+#x2c904ede4c9e9abb
+#x404a9b3dc740d53b
+#x8349cf5c329790ad
+#xdcd94b67dbbd91c5
+#x63a0aebf78fd2190
+#xd9e7cb974d9be35f
+#xfeb275519c859153
+#xf6898166ed610a05
+#xd2ffff6f8c67dbfc
+#xdb5bf6e82b4afa42
+#x2d838de901bfd5a5
+#xba39533ac7512912
+#xded924f1c47d039c
+#xc4e66e6404829198
+#xeb746250c25d055f
+#xf41bc7783885e345
+#x169e8515f6fc2100
+#x84315292afdbdf36
+#x6e30a2bf7c5cbd40
+#x12a4fe841a992a25
+#xac586cf039c71abd
+#xe1ebbb3427532c55
+#x32f198ff70a9b01a
+#xd5b7586056f4271f
+#x8053e394281b2453
+#x47e94d404eda0874
+#xc972b3b7b4095d6d
+#xb6ee4b7d9c54fca7
+#x554b7ee4051e9b32
+#xe90d21c2a4d0498b
+#x276004095a7b9999
+#xfeb644f1d51d84d2
+#x41407e2fc80442e4
+#xeb83441051d08b3a
+#xbde2ad4001191788
+#x22f3cd1e523514dd
+#x8ba867b8094b8459
+#x22d517a0889bb2b1
+#x620e156076bf2537
+#x192ac92e3e33aeb9
+#x77a6d31fd4dad179
+#x689fda239a53f83f
+#x480301774d717528
+#xf161385b7a65708
+#xb731413d225d2b13
+#x5d298a0d60285f5
+#xbee72b2ee9964a82
+#x7d925b6b22dbf04f
+#x5d04489804e1720a
+#x2d0ab3d8b3cb1c8f
+#xba6b7f744031d6fc
+#x238ef7e7ec4a64ed
+#x68442f67a85807ea
+#x3108828ad88a2d07
+#x4d9ea1e62d783c27
+#xbb3254fd659a6371
+#x6186e1d702363f8f
+#xa880bc3830245fe4
+#x7854a48f3d7fd4ab
+#x7ac64796cae70d8c
+#x68327ea956ffe3d1
+#xeb36af036ce34c20
+#x85b69d62340a692b
+#x234d74521ad858da
+#x83a5aa15c3b0812f
+#xc58b4f5b9b8da822
+#x497699643774582f
+#x156d2e02223b7711
+#xf1485e8f7e4a363c
+#x1c8ce0e42ada9536
+#xcb2d7d3cae066c62
+#x9cd271a6faed19fb
+#xc3727f1e3a9942dd
+#xa89127fdc02204c3
+#xfe1719a063bd966e
+#x18ec86599174fbe0
+#x9eb8386fad02da87
+#xa2acb641c090bdc0
+#x31069027bbb0f625
+#x60c8ac6322ce0880
+#xdaf2060890f8eaff
+#x51e4ec839760aeb9
+#x633f3ab770c92228
+#xd6096dcd0ad265d6
+#xcc51c885019447ab
+#x52f2da10c07a7ee0
+#x6e837de387eb427a
+#x320eae77b742f276
+#x7787f03fb8546857
+#xe148fa74fe60cd22
+#xbca37e11bb7d4ac9
+#x1ce799379649907b
+#x558749b4c11fc3b4
+#xa850ce995d546707
+#x8f764bfa68b06323
+#x2b0ebbee911fa7ea
+#xfc27f1b341d3d9bf
+#x5028ad450027336a
+#x553ed97c9172e3a7
+#xe05b078b6c58b544
+#xe435773fd5346aa1
+#xbeb0a99dec567d56
+#x92e7e23a0287b2ea
+#xa41d60d54f7966b6
+#xde024ee8c932cd5d
+#x3a41a6f4329dfbdd
+#x956b7cd0e84b8411
+#x40346ed605071e9b
+#xc15fc967c27fb3b0
+#x85826a39e5265543
+#xe22e79cc5e05ed71
+#xa29ef8d3daf30c92
+#x8bb9117dce0032b6
+#xf07c83d51713ce10
+#xdaab2f9bcbfc8e77
+#x565e9d98292cd85c
+#x4b2dc28b6664329c
+#x3d4733ceb2f3a4ba
+#x990cbe84d54851c8
+#xf5fce4b8097f39fa
+#xfaa423d33e4bba99
+#x25a127d8dd3c42b1
+#x8e73f6758bb05327
+#x1d86c6aa833baeee
+#x4164a97215483e85
+#xa720b337a3a4c8aa
+#x44c7ec2cf4b9358e
+#x20cb70f81539525b
+#x34f413687836095b
+#xb6df6e81736a7830
+#xda457375f287f392
+#xea45889232763e73
+#x976b0f3d31f9b898
+#xd0d2486fe3539f23
+#x676062a43171e7b3
+#x67b9b7b13f4dab8f
+#xca00f4b5050fee2f
+#x624c417024fe8e8b
+#x89bbe738806c5f77
+#x44317018ba9b2659
+#xeaa723783d50436
+#x3f2f7e86d8c0076b
+#x96804c4100c9607d
+#x499a8dc2742c659c
+#x2ad1b06e3718013c
+#xb960002bff2c213c
+#xacf3ca1acf5a933f
+#xe94544e8e8790f77
+#xdc2895b04a96b4e
+#x62113a846111ff81
+#x3724632c97de0cb8
+#x702c83207477f1f2
+#x51f4031eb1a6ff66
+#x4117e0095be6f790
+#x315a7a31db9ac8b8
+#x705f3a362e5672f9
+#xbc6db9ef39b9ece3
+#x24cc81b607c9ba86
+#x64d27d6892bf6a4d
+#xf610defc4a583c2b
+#x245dd23d9527cd29
+#x107ea2be3804e06c
+#x406034edf70a2193
+#xd02cc916d3502ad3
+#x2ebc876e056f0909
+#x83e95bb91562f838
+#x5355b1d009564184
+#xa83882b6437a400d
+#xdbe847ff249d18db
+#x1e44199220c377cc
+#x72a9fcb93eea63dc
+#xcf37d2529177e721
+#xc39b610fab4a1770
+#xefbb53179d603f7d
+#xd19764154c765767
+#xe7b3eb2d9a70ea62
+#x1f5a645a881af19b
+#xad0b800b3ce9e42e
+#xa1475a9750eaa888
+#xb70fb58b4a9c6208
+#x2aaa064e517abfeb
+#xaed3a469736182a2
+#x1d20fc777382ed11
+#xe96a49752e2a4691
+#x24dcb5b70ee767de
+#xdeaf41040b320bf0
+#xdb12bfc4093c5d2c
+#x4b0da7b54bcefe0f
+#x18a529f7a8dbaa41
+#x7dab60f3ad95d62d
+#x688e98ac936a9c6
+#xf559b9e05544deae
+#xe31ceccb764b10a9
+#x7359dd05f55864c4
+#x69025bd495ebdd9e
+#x99a8210f8309d603
+#x6a42c4e68918c2e6
+#x64c3ebc84e671c2
+#xa0f95e65f06e3b34
+#x826f9af11b89f890
+#xb1a2b7458487bbd5
+#xd7483166463b550e
+#xf825a56f155b0f05
+#xc281d6d3ea98b0f0
+#x22ec970f8edbe322
+#x776c882723fa3f4f
+#x101ca1330c0fbcaa
+#x1d9f618b2f2a04b
+#xf7047525023cd05a
+#xf988d0cf3506f091
+#xe7e5342dc805f716
+#x6b2d6f908189aa01
+#x29852bf7f510f439
+#x984971b9fdb99d32
+#x44ac163355e95fe0
+#x921e6eba23f03954
+#x7f95235f2dcbc87f
+#xe66efd096e0d1a4f
+#x92d45bb27c8087ba
+#xfbe34dcd44eeeceb
+#x9ee9efbe880c4a63
+#x4a8b9c9d81d6979d
+#x696f968c2e2c0ed3
+#x43ab35aee77635c9
+#x448af78a51a7440d
+#x4c6b2c8794b3ea4c
+#xf28d5a686c2f6c0f
+#xb01a0e6ed132c5fb
+#x4c8408d3583fe438
+#x867ca9c47b8cb4be
+#x44d67e8981ff24fa
+#x8a2d8cf5be7fe1ea
+#x67c6f4f5d2872838
+#x394f851a6ea9cf6c
+#x2fcc8b047ec7e1b4
+#x7af26cc68d9c3f4d
+#x569d242303807008
+#x8ad132c16d68cc8
+#x6b8262a5180751d8
+#xc4ebdef589dd2d38
+#xa5583a379f90152a
+#xd529d88428d0993b
+#xd25d4260fb1bd75e
+#x25434907bb795c0b
+#xf1020a21347e9cec
+#x75dc94c4936678ef
+#xa018325bf701e655
+#x53bdaa43d2199f35
+#xe6d2c434e68e275
+#x4e83190ea4eb8fdb
+#x5d1f7ef3f16d52a8
+#x91315dc9ebb6d3f2
+#x8ccfc6234f95e2b4
+#xc4b7177613af5dd4
+#x2390d5c7eb30ff21
+#x152f435fa3d7a063
+#xb97360e3578ad88d
+#x1bd2538371acb93e
+#xf0ec2cf3697ce4f9
+#x592f5a43c2198ef0
+#xb8ae4b9f8e725f5f
+#x2496bc8f8cb1e78a
+#x2d2e8f3b951749c5
+#xf2236c8da7a9deb8
+#xcd9f88f31c682786
+#xf77c0906d2a8a341
+#x57c7fb635cc8b747
+#x9158761d56f7c4ad
+#x8c1fe752deba22f2
+#xe2907ebb1a439e0d
+#xa22f13b8a2c4b8f7
+#x20b5fe03da7dc561
+#x615f96bffec64fd2
+#x8680c7d40fdbbb47
+#x8c89df06484e9d2a
+#x3028663d3ad2975a
+#x57c5d0474e8dec2e
+#xaa1ea1926e3a3f45
+#x39c4296b67fc6ca2
+#x23050fc81f02fbac
+#xa5b32bf1bd9843e7
+#x4cfc74d93a45bea8
+#x94513f76084e2c4b
+#xa3fa8a3e92cf4e16
+#x974593c435969596
+#x37f3ddf40376c7cd
+#xb648cd2f88c6eb08
+#x597f2542a67c27ca
+#xc84a952a5224f9c6
+#x9cf711b8bdf0a453
+#x870e910cd14ef2d6
+#x6d3fe2d66d77e38c
+#x1741613cd3967bb6
+#xa72ed0e63f77e03c
+#x990e7076d6f7b488
+#xe2bc9c506d2b797c
+#xc864442d4891ec65
+#x9dbc913751052695
+#xf02a5e27a8c064e5
+#x9939cee05f1cb55b
+#xd86ac047f5a0c2ef
+#xea4b857fe75dd24f
+#x3edf1c4548e7d3a5
+#x83176c2c17606aac
+#x3095c4edb14554bc
+#x582a65d436f2f797
+#x44c7da4481aee568
+#x8b97fcc4b30bad0f
+#xa5b33a2106dccb5b
+#x5ae917ae4f59b109
+#xeff3c52b1aebcc27
+#x5b23ba10cacb13d6
+#x6816abaf90c15e36
+#x35410666cbff066f
+#xf1c25fdfcf713d78
+#xb5d5e4537e4bbf96
+#x5e17295b37b5a035
+#x84347543cf83a9ff
+#x2a801368788e3115
+#x1bef9a5971efd118
+#xfd6240056abdd7ee
+#xd656203e657b807c
+#x4c64701899b43df1
+#x514c98375c25bbc6
+#xaa77946b48370715
+#x5a5ed14cc57cea2d
+#x33f74ffc72a6690b
+#x91b8d1bde313688c
+#x7a12cdcf0a4c657d
+#xf149596a212f843a
+#xb4182a65799cb851
+#x8c9032b75a3971c6
+#x5694bda16288ac13
+#xf2401c7ccf36a2c4
+#xbd4328a8bca9d3b9
+#x3f1fcfbe7d2af618
+#x357e8fd2ca1c0f71
+#x42650405859e1629
+#x86dc7c48241e6092
+#x512f725192d3198c
+#x1bd41955f8edec87
+#x1c80acfbcc721a83
+#xcb8620e8b98c09a
+#x57ed25ddfe540d35
+#x9286b2ec56e27769
+#xfed2ff9e53d398ab
+#x39726384f177dc29
+#x4f33c3c1dff5acee
+#xdc9f12c0b24e171a
+#xaf3c7446f4bbf6b9
+#xc697c027f5ac8d9e
+#x62e5c024c9cb379f
+#x6dc4cb65e68c7dd4
+#x3721701778452dbc
+#xe933531943d21b5a
+#x33f391e03450211b
+#xd4161fecc37ac177
+#x35838dad62cb1998
+#x442f126fb26950b7
+#x8347da06f26dd9a6
+#xec9e0cd3b8841907
+#x3fd431b16a1660bb
+#x9c76cefe2725d90f
+#x3bd8ac01b47cda36
+#x58c23ce0b7ce931a
+#x525f2e969e313d29
+#x3f4700e0b367b6f6
+#x630169984eb8b1e2
+#xf62a0c221f8eb8bf
+#xbc07cb0629b46311
+#xada0f9bfe1711a6f
+#xda578026de114354
+#x39f8ce97d4b7ce7d
+#xe8203a590fcd3229
+#x4130f7634c3da5a1
+#x252a868f926fb89c
+#xfc197475c6d1a629
+#x76eda58d1e59f6d7
+#xed2ce7c4b81e2ba1
+#x309028e54fc61f2a
+#xe30e46e48d8cf4ee
+#x9e692550b60403ea
+#x53b881aa1079c29f
+#xbc06e105c7f31f00
+#xcdf74460963e5b38
+#x3807fdf6db46f639
+#x7a2454d18a1fbd63
+#x7346aa11d2046a0
+#x6cc228fe4f450e0c
+#x214c4ac27eacd494
+#xddf4b30696e371f9
+#x9feaf8a4c04b507c
+#xae22d7ee3ccc3998
+#x5a005f18e2f83340
+#xd61006a0cb5b274f
+#x74087880a0db32bc
+))

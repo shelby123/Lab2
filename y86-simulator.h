@@ -30,6 +30,7 @@ unsigned char getFunctionCode(state *s);
 char* getRegisters(state *s);
 uint64_t getQuadWord(state *s);
 uint64_t getQuadWordLoc(state *s, uint64_t location);
+void setCondCodes(state *s, uint64_t val1, uint64_t val2, uint64_t res, char func);
 
 /* instruction execution methods */
 void halt(state *s);
