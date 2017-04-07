@@ -1,10 +1,12 @@
 (
 ; wrapper to call the quick sort algo
 (irmovq array %rdi)
+(irmovq 8 %r8)
+(addq %r8 %rdi)
 (irmovq 0 %rsi)
-; this immediate must be the length of the array
-; this is for the data set with length = 10. 
-(irmovq 10 %rdx)
+(mrmovq array(%rsi) %rdx)
+(irmovq 1 %r8)
+(subq %r8 %rdx)
 (call quicksort)
 (halt)
 
@@ -369,17 +371,18 @@ swap
 (pos 4096)
 array
 (qword 
-#xc8f4b5e2d353c991
-#xe60836acca95fd46
-#xff74b71d145f52a7
 #xa
-#x84ca711854d5e0
+#xff74b71d145f52a7
 #x8fc9d92b4080208
-#x2041a3a863998970
-#x2376df3fc482fccf
-#x397cfd5619d567cd
-#x6fe548562b9e2634
+#xe60836acca95fd46
 #x715b24d95aeee74c
+#x397cfd5619d567cd
+#xc8f4b5e2d353c991
+#x6fe548562b9e2634
+#x84ca711854d5e0
+#x2376df3fc482fccf
+#x2041a3a863998970
+
 )
 
 

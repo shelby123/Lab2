@@ -4,7 +4,7 @@
 
 #define NUMTESTS 13
 
-#define DEBUGTESTER 0
+#define DEBUGTESTER 1
 
 #define ARRAYLOC 4096
 
@@ -64,13 +64,13 @@ char* testNames[NUMTESTS] = {"1: irmovq + addq",
 // 	// runQuickSortTests();
 // }
 int main() {
-	// for(int testNum = 0; testNum < NUMTESTS; testNum++) {
-	// 	runTest(assemblerFiles[testNum], 
-	// 			expectedFiles[testNum],
-	// 			testNames[testNum]);
-	// }
-	// runFibTests();
-	runQuickSortTests();
+	for(int testNum = 0; testNum < NUMTESTS; testNum++) {
+		runTest(assemblerFiles[testNum], 
+				expectedFiles[testNum],
+				testNames[testNum]);
+	}
+	runFibTests();
+	// runQuickSortTests();
 }
 
 #define NUMFIBTESTS 4

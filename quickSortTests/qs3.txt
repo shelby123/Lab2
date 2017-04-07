@@ -1,9 +1,12 @@
 (
 ; wrapper to call the quick sort algo
 (irmovq array %rdi)
+(irmovq 8 %r8)
+(addq %r8 %rdi)
 (irmovq 0 %rsi)
-; this immediate must be the length of the array
-(irmovq 1000 %rdx)
+(mrmovq array(%rsi) %rdx)
+(irmovq 1 %r8)
+(subq %r8 %rdx)
 (call quicksort)
 (halt)
 
