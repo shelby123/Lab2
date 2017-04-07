@@ -14,25 +14,24 @@
  * run the simulater with the file to read from as 
  * the first argument of the command line.
  * (Wrapper for command line start)
-//  */ 
-// int main(int argc, char** argv ) {
-//     assert(argc >= 2);
-//     if(DEBUG)
-//         printf("Starting the simulator\n");
-//     char* fileName = argv[FILENAME];
-//     state *s = runSimulation(fileName);
-//     if(argc >=3) {
-//     	uint64_t memHigh = atoi(argv[FILENAME+1]);
-//     	printRegisters(s);
-//     	for(int i = 4096; i <= memHigh; i++) {
-// 	    	printf("%d %d\n", i, (unsigned char)s->memory[i]);
-// 	    }
-// 	    // for(int i = 4096; i <= memHigh; i+=8) {
-// 	    // 	printf("%d %"PRIu64"\n", i,  getQuadWordLoc(s, i));
-// 	    // }
+ */ 
+int main(int argc, char** argv ) {
+    assert(argc >= 2);
+    if(DEBUG)
+        printf("Starting the simulator\n");
+    char* fileName = argv[FILENAME];
+    state *s = runSimulation(fileName);
+    if(argc >=3) {
+    	uint64_t memHigh = atoi(argv[FILENAME+1]);
+    	for(int i = 4096; i <= memHigh; i++) {
+	    	printf("%d %d\n", i, (unsigned char)s->memory[i]);
+	    }
+	    // for(int i = 4096; i <= memHigh; i+=8) {
+	    // 	printf("%d %"PRIu64"\n", i,  getQuadWordLoc(s, i));
+	    // }
 
-//     }
-// }
+    }
+}
 
 /*
  * Run the simulation, given the input file name.

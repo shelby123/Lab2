@@ -1,7 +1,12 @@
 (
 ; wrapper to call fib
-(irmovq 0 %rdi)
+(irmovq 30 %rdi)
 (call fib)
+
+; COMMENT THIS PAUSE IN, AND THEN USE pReg TO SEE THE RESULT IN RAX
+; (pause)
+
+
 (halt)
 
 
@@ -13,10 +18,11 @@ fib
 (rrmovq %rdi %r10) 
 ; check if r10 is 0
 (andq %r10 %r10)
-(jg continue)
+(jg checkIfOne)
 (rrmovq %rdi %rax)
 (jmp done )
 
+checkIfOne
 ; check if r10 is 1
 (irmovq 1 %r11)
 (subq %r11 %r10)
@@ -29,10 +35,14 @@ continue
 ; fib n-1 + fib n - 2
 (irmovq 1 %r11) 
 (subq %r11 %rdi)
+(pushq %rdi)
 (call fib)
-(rrmovq %rax %r10)
+(popq %rdi)
+(pushq %rax)
+;(rrmovq %rax %r10)
 (subq %r11 %rdi)
 (call fib)
+(popq %r10)
 (addq %r10 %rax)
 
 

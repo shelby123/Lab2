@@ -10,7 +10,7 @@ simulator: y86-simulator.c y86-simulator.h state.h y86-simulator.c util.h pauseR
 	$(CC) -c initialState.h
 	$(CC) -c pauseRoutine.c
 	$(CC) -o simulator y86-simulator.c
-tester: y86-simulator.c y86-simulator.h state.h tester.c tester.h y86-simulator.c util.h pauseroutine.c
+tester: y86-simulator.c y86-simulator.h state.h tester.c tester.h y86-simulator.c util.h pauseRoutine.c
 	$(CC) -c util.h
 	$(CC) -c state.h
 	$(CC) -c initialState.h
