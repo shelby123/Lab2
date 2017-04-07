@@ -1,6 +1,10 @@
 Shelby McGarrah
 sm52376
 
+Prelude: sorry about the wall of text. I wasn't sure exactly how to make it the easiest for you to test, and so I wanted to be thorough in my explanation.
+
+
+
 To make and run the assembler: 
 make assembler
 assembler {FILE_NAME}
@@ -16,41 +20,39 @@ simulator {FILE_NAME}
 
 Ways to verify: 
 
-Quicksort: 
+QUICKSORT: 
 run: bash test.sh
 
 This will run quicksort on all of the given input files. It tests against a sorted list that I created using a java program. (and I checked it about a million times).
 
 
-Fibonnaci: 
+FIBONACCI: 
 the easiest way to test this is to go into fibY86.txt inside y86Code folder, and comment in the "pause" instruction on line 7, and then when the program pauses, type in pReg to see the values in the registers, and confirm that rax = the expected value.
 
 make clean; make assembler; make simulator
 assembler y86Code/fibY86.txt > fibTests/fibY.txt
 simulator fibTests/fibY.txt
 
+OTHER: 
+there are a few options: 
 
-
-
-
-NOTE: simulator recieves a file off of the command line, and then just runs the simulator. Because of the difficulty of debugging int that, I wrote a tester file that would call "runSimulator" directly, and get the state struct back in return. I wasn't sure which version you wanted turned in, the one that accepts the file on the command line, or the one that calls runSimulator from tester.c, which is more adept for testing. I just turned in the one that accepts a file name off of the command line. If you want to run the tester, comment out main in y86-simulator, comment in the main in tester.c, and run 
-
-make clean; make tester
-./tester
-
-(don't comment in the runQuickSortTests line unless you want to wait a long time for an output :))
-
-otherwise, to make the simulator, just run
-
+- If you just want to print out the contents of the memory at the end of a simulation run (like for testing quicksort), you can say 
 make clean; make simulator
-./simulator {FILE_NAME}
+simulator {assemblyFile} {memoryHigh}
 
+and the contents of memory from 4096 to memoryHigh will be printed. 
 
-if you want to print out the resulting register files without runing ./tester, you can change the #define PRINTRESULT to a 1, and that will do it. Just remake and run it.
+- If you want more specific information, you can insert a "pause" command into your y86 file. This will "pause" the simulation at that instruction, and you can run commands to get more information about the running program (similar to gdb, was the thinking). The existing commands are : 
 
+pReg: print the contents of all the registers
+reg: print out the contets of a specific register
+conditions: print out the condition variables 
+pStack: print out all of the stack memory (rsp to MEMORY MAX)
+pMem: print out memory from a start location to end location (prompted for input)
+continue: continue the simulation
 
-
-As a side, my tester can be run with the following file format as the "expected results" file: 
+- you can also use my "Tester" file. comment in main in tester, comment out main in simulator. run make clean; make tester. You can then add a 
+test to the file, and give the format for the expected output in a result file: 
 (
 
 MEMORY
@@ -85,8 +87,25 @@ MEMORY
 (pc)
 0 
 
+and the tester will check if the result of the simulation run is the same as the expected result.
 
-I do wish I could have made this easier for you to grade, Ben, but with such loose specifications, I just did the best I could. 
+
+
+NOTE: simulator recieves a file off of the command line, and then just runs the simulator. Because of the difficulty of debugging given that there was no way to get the state returned, I wrote a tester file that would call "runSimulator" directly, and get the state struct back in return. I wasn't sure which version you wanted turned in, the one that accepts the file on the command line, or the one that calls runSimulator from tester.c, which is more adept for testing. I just turned in the one that accepts a file name off of the command line. If you want to run the tester, comment out main in y86-simulator, comment in the main in tester.c, and run 
+
+make clean; make tester
+./tester
+
+
+otherwise, to make the simulator, just run
+
+make clean; make simulator
+./simulator {FILE_NAME}
+
+
+
+
+Again, I do wish I could have made this easier for you to grade, Ben, I just did the best I could. 
 
 
 
